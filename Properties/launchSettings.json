@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "VTStudioToolBox (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "VTStudioToolBox (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
