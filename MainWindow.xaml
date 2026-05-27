@@ -68,6 +68,12 @@
                         <FontIcon Glyph="&#xE70A;"/>
                     </muxc:NavigationViewItem.Icon>
                 </muxc:NavigationViewItem>
+                <muxc:NavigationViewItem Content="实用工具" 
+                                         Tag="utilities">
+                    <muxc:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE90F;" />
+                    </muxc:NavigationViewItem.Icon>
+                </muxc:NavigationViewItem>
             </muxc:NavigationView.MenuItems>
 
             <Frame x:Name="ContentFrame"

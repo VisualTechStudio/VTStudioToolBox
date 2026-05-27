@@ -18,6 +18,7 @@ namespace VTStudioToolBox
         private readonly Dictionary<string, Type> _pageRoutes = new()
         {
             ["dashboard"] = typeof(DashboardPage),
+            ["utilities"] = typeof(UtilitiesPage),
             ["settings"] = typeof(SettingsPage),
         };
 

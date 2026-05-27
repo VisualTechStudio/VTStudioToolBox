@@ -1,4 +1,3 @@
-﻿using Hardware.Info;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
@@ -6,6 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management;
 using System.Threading.Tasks;
+using Microsoft.Win32;
+using SharpDX;
+using SharpDX.DXGI;
 using VTStudioToolBox.Helpers;
 
 namespace VTStudioToolBox.Views
@@ -46,20 +48,31 @@ namespace VTStudioToolBox.Views
         {
             try
             {
-                var cached = CacheManager.Get<SystemInfo>("SystemInfo");
-                if (cached != null)
+                // 优先从文件缓存加载，实现秒开
+                var fileCached = FileCacheManager.Get<SystemInfo>("SystemInfo");
+                if (fileCached != null)
                 {
-                    UpdateUIWithSystemInfo(cached);
+                    // 立即显示缓存数据
+                    UpdateUIWithSystemInfo(fileCached);
+                    
+                    // 后台静默刷新数据
                     _ = Task.Run(async () =>
                     {
                         var fresh = await Task.Run(GetSystemInfo);
-                        CacheManager.Set("SystemInfo", fresh, TimeSpan.FromMinutes(5));
+                        FileCacheManager.Set("SystemInfo", fresh, TimeSpan.FromHours(24));
+                        
+                        // 如果数据有变化，更新UI
+                        DispatcherQueue.TryEnqueue(() =>
+                        {
+                            UpdateUIWithSystemInfo(fresh);
+                        });
                     });
                 }
                 else
                 {
+                    // 没有缓存，显示加载中
                     var info = await Task.Run(GetSystemInfo);
-                    CacheManager.Set("SystemInfo", info, TimeSpan.FromMinutes(5));
+                    FileCacheManager.Set("SystemInfo", info, TimeSpan.FromHours(24));
                     UpdateUIWithSystemInfo(info);
                 }
             }
@@ -96,15 +109,50 @@ namespace VTStudioToolBox.Views
         private SystemInfo GetSystemInfo()
         {
             var info = new SystemInfo();
-            var hardwareInfo = new HardwareInfo();
 
             try
             {
-                hardwareInfo.RefreshAll();
-
                 info.ComputerName = Environment.MachineName;
 
-                using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem"))
+                // 并行执行所有WMI查询
+                var tasks = new List<Task>();
+
+                tasks.Add(Task.Run(() => GetOSInfo(info)));
+                tasks.Add(Task.Run(() => GetComputerSystemInfo(info)));
+                tasks.Add(Task.Run(() => GetMotherboardInfo(info)));
+                tasks.Add(Task.Run(() => GetCPUInfo(info)));
+                tasks.Add(Task.Run(() => GetRAMInfo(info)));
+                tasks.Add(Task.Run(() => GetGPUInfo(info)));
+                tasks.Add(Task.Run(() => GetHDDInfo(info)));
+                tasks.Add(Task.Run(() => GetNetworkInfo(info)));
+                tasks.Add(Task.Run(() => GetAudioInfo(info)));
+
+                Task.WaitAll(tasks.ToArray(), TimeSpan.FromSeconds(10));
+
+                // 显示器信息在后台加载
+                info.Display = "加载中...";
+                _ = Task.Run(() =>
+                {
+                    var displayInfo = GetMonitorInfo();
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        DisplayText.Text = displayInfo;
+                    });
+                });
+            }
+            catch (Exception ex)
+            {
+                info.OSInfo = $"获取系统信息时出错：{ex.Message}";
+            }
+
+            return info;
+        }
+
+        private void GetOSInfo(SystemInfo info)
+        {
+            try
+            {
+                using (var searcher = new ManagementObjectSearcher("SELECT Caption, OSArchitecture, BuildNumber, Version, InstallDate, LastBootUpTime FROM Win32_OperatingSystem"))
                 {
                     foreach (ManagementObject os in searcher.Get())
                     {
@@ -130,51 +178,92 @@ namespace VTStudioToolBox.Views
                         break;
                     }
                 }
+            }
+            catch { }
+        }
 
-                using (var csSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_ComputerSystem"))
+        private void GetComputerSystemInfo(SystemInfo info)
+        {
+            try
+            {
+                using (var searcher = new ManagementObjectSearcher("SELECT Manufacturer, Model FROM Win32_ComputerSystem"))
                 {
-                    foreach (ManagementObject cs in csSearcher.Get())
+                    foreach (ManagementObject cs in searcher.Get())
                     {
                         info.Manufacturer = cs["Manufacturer"]?.ToString() ?? "未知";
                         info.Model = cs["Model"]?.ToString() ?? "未知";
                         break;
                     }
                 }
+            }
+            catch { }
+        }
 
-                if (hardwareInfo.MotherboardList.Count > 0)
+        private void GetMotherboardInfo(SystemInfo info)
+        {
+            try
+            {
+                using (var searcher = new ManagementObjectSearcher("SELECT Manufacturer, Product FROM Win32_BaseBoard"))
                 {
-                    var board = hardwareInfo.MotherboardList[0];
-                    info.Motherboard = $"{board.Manufacturer ?? ""} {board.Product ?? "未知"}".Trim();
-                }
-
-                if (hardwareInfo.CpuList.Count > 0)
-                {
-                    var cpu = hardwareInfo.CpuList[0];
-                    string name = CleanCpuName(cpu.Name ?? "未知");
-                    string cores = cpu.NumberOfCores.ToString();
-                    string threads = cpu.NumberOfLogicalProcessors.ToString();
-                    string maxSpeed = cpu.MaxClockSpeed > 0 ? cpu.MaxClockSpeed.ToString() : "未知";
-
-                    info.CPU = $"{name} ({cores}核心/{threads}线程 {maxSpeed}MHz)";
-                }
-
-                if (hardwareInfo.MemoryList.Count > 0)
-                {
-                    var ramModules = new List<string>();
-                    long totalBytes = 0;
-                    var speedList = new List<int>();
-                    string ddrType = "未知";
-
-                    var memoryGroups = new Dictionary<string, Dictionary<string, (int Count, long Capacity)>>();
-
-                    foreach (var mem in hardwareInfo.MemoryList)
+                    foreach (ManagementObject board in searcher.Get())
                     {
-                        long capacity = (long)mem.Capacity;
+                        string manufacturer = board["Manufacturer"]?.ToString()?.Trim() ?? "";
+                        string product = board["Product"]?.ToString()?.Trim() ?? "未知";
+                        info.Motherboard = $"{manufacturer} {product}".Trim();
+                        break;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void GetCPUInfo(SystemInfo info)
+        {
+            try
+            {
+                using (var searcher = new ManagementObjectSearcher("SELECT Name, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed FROM Win32_Processor"))
+                {
+                    foreach (ManagementObject cpu in searcher.Get())
+                    {
+                        string name = CleanCpuName(cpu["Name"]?.ToString() ?? "未知");
+                        string cores = cpu["NumberOfCores"]?.ToString() ?? "0";
+                        string threads = cpu["NumberOfLogicalProcessors"]?.ToString() ?? "0";
+                        string maxSpeed = cpu["MaxClockSpeed"]?.ToString() ?? "0";
+
+                        if (int.TryParse(maxSpeed, out int mhz) && mhz > 0)
+                        {
+                            double ghz = mhz / 1000.0;
+                            info.CPU = $"{name} ({cores}核心/{threads}线程 {ghz:F1}GHz)";
+                        }
+                        else
+                        {
+                            info.CPU = $"{name} ({cores}核心/{threads}线程)";
+                        }
+                        break;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void GetRAMInfo(SystemInfo info)
+        {
+            try
+            {
+                long totalBytes = 0;
+                var speedList = new List<int>();
+                var memoryGroups = new Dictionary<string, Dictionary<string, (int Count, long Capacity)>>();
+
+                using (var searcher = new ManagementObjectSearcher("SELECT Capacity, Speed, Manufacturer, PartNumber FROM Win32_PhysicalMemory"))
+                {
+                    foreach (ManagementObject mem in searcher.Get())
+                    {
+                        long capacity = Convert.ToInt64(mem["Capacity"] ?? 0);
                         totalBytes += capacity;
 
-                        string brand = string.IsNullOrWhiteSpace(mem.Manufacturer) ? "未知" : mem.Manufacturer.Trim();
-                        string part = string.IsNullOrWhiteSpace(mem.PartNumber) ? "未知颗粒" : mem.PartNumber.Trim();
-                        int speed = (int)mem.Speed;
+                        string brand = mem["Manufacturer"]?.ToString()?.Trim() ?? "未知";
+                        string part = mem["PartNumber"]?.ToString()?.Trim() ?? "未知颗粒";
+                        int speed = Convert.ToInt32(mem["Speed"] ?? 0);
 
                         if (!memoryGroups.ContainsKey(brand))
                         {
@@ -193,61 +282,213 @@ namespace VTStudioToolBox.Views
 
                         if (speed > 0) speedList.Add(speed);
                     }
-
-                    double totalGB = totalBytes / (1024.0 * 1024.0 * 1024.0);
-
-                    string freqDisplay = "未知";
-                    if (speedList.Count > 0)
-                    {
-                        var mostCommonSpeed = speedList.GroupBy(x => x)
-                                                       .OrderByDescending(g => g.Count())
-                                                       .First()
-                                                       .Key;
-                        freqDisplay = $"{mostCommonSpeed}MHz";
-                        if (speedList.Distinct().Count() > 1)
-                        {
-                            freqDisplay += " (混频)";
-                        }
-                    }
-
-                    if (freqDisplay != "未知" && freqDisplay != "0MHz")
-                    {
-                        int mainFreq = int.Parse(freqDisplay.Split('M')[0]);
-                        if (mainFreq >= 4800) ddrType = "DDR5";
-                        else if (mainFreq >= 2133) ddrType = "DDR4";
-                        else if (mainFreq >= 800) ddrType = "DDR3";
-                        else if (mainFreq > 0) ddrType = "DDR2/早";
-                    }
-
-                    var ramDisplay = new List<string>();
-
-                    foreach (var brandGroup in memoryGroups)
-                    {
-                        foreach (var partGroup in brandGroup.Value)
-                        {
-                            string partNumber = partGroup.Key;
-                            int count = partGroup.Value.Count;
-                            double gb = partGroup.Value.Capacity / (1024.0 * 1024.0 * 1024.0);
-
-                            ramDisplay.Add($"{brandGroup.Key} ({count} x {gb:F0}GB [{partNumber}])");
-                        }
-                    }
-
-                    string ramText = $"{totalGB:F2}GB {ddrType} {freqDisplay}";
-                    if (ramDisplay.Count > 0)
-                    {
-                        ramText += "\n" + string.Join("\n", ramDisplay);
-                    }
-
-                    info.RAM = ramText;
                 }
-                if (hardwareInfo.VideoControllerList.Count > 0)
+
+                if (totalBytes == 0)
                 {
-                    var gpuList = new List<string>();
+                    info.RAM = "未知";
+                    return;
+                }
 
-                    var driverDict = new Dictionary<string, (string Version, string Date)>(StringComparer.OrdinalIgnoreCase);
+                double totalGB = totalBytes / (1024.0 * 1024.0 * 1024.0);
 
-                    using (var driverSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPSignedDriver WHERE DeviceClass = 'DISPLAY'"))
+                string freqDisplay = "未知";
+                string ddrType = "未知";
+
+                if (speedList.Count > 0)
+                {
+                    var mostCommonSpeed = speedList.GroupBy(x => x)
+                                                   .OrderByDescending(g => g.Count())
+                                                   .First()
+                                                   .Key;
+                    freqDisplay = $"{mostCommonSpeed}MHz";
+                    if (speedList.Distinct().Count() > 1)
+                    {
+                        freqDisplay += " (混频)";
+                    }
+
+                    if (mostCommonSpeed >= 4800) ddrType = "DDR5";
+                    else if (mostCommonSpeed >= 2133) ddrType = "DDR4";
+                    else if (mostCommonSpeed >= 800) ddrType = "DDR3";
+                    else if (mostCommonSpeed > 0) ddrType = "DDR2/早";
+                }
+
+                var ramDisplay = new List<string>();
+
+                foreach (var brandGroup in memoryGroups)
+                {
+                    foreach (var partGroup in brandGroup.Value)
+                    {
+                        string partNumber = partGroup.Key;
+                        int count = partGroup.Value.Count;
+                        double gb = partGroup.Value.Capacity / (1024.0 * 1024.0 * 1024.0);
+
+                        ramDisplay.Add($"{brandGroup.Key} ({count} x {gb:F0}GB [{partNumber}])");
+                    }
+                }
+
+                string ramText = $"{totalGB:F2}GB {ddrType} {freqDisplay}";
+                if (ramDisplay.Count > 0)
+                {
+                    ramText += "\n" + string.Join("\n", ramDisplay);
+                }
+
+                info.RAM = ramText;
+            }
+            catch { }
+        }
+
+        private long GetVRAMFromRegistry(string gpuName)
+        {
+            try
+            {
+                string lowerName = gpuName.ToLower();
+
+                long vram = 0;
+
+                if (lowerName.Contains("nvidia"))
+                {
+                    vram = GetNvidiaVRAM();
+                }
+                else if (lowerName.Contains("amd") || lowerName.Contains("radeon"))
+                {
+                    vram = GetAMDVRAM();
+                }
+
+                if (vram > 0 && IsValidVRAMValue(vram))
+                {
+                    return vram;
+                }
+            }
+            catch { }
+
+            return 0;
+        }
+
+        private bool IsValidVRAMValue(long vramBytes)
+        {
+            double gb = vramBytes / (1024.0 * 1024.0 * 1024.0);
+            return gb >= 1.0 && gb <= 24.0;
+        }
+
+        private long GetNvidiaVRAM()
+        {
+            try
+            {
+                using (var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"))
+                {
+                    if (key == null) return 0;
+
+                    foreach (string subKeyName in key.GetSubKeyNames())
+                    {
+                        using (var subKey = key.OpenSubKey(subKeyName))
+                        {
+                            if (subKey == null) continue;
+
+                            object vramObj = subKey.GetValue("HardwareInformation.MemorySize");
+                            if (vramObj != null)
+                            {
+                                string vramStr = vramObj.ToString();
+                                if (long.TryParse(vramStr, System.Globalization.NumberStyles.HexNumber, null, out long vram))
+                                {
+                                    return vram;
+                                }
+                                if (long.TryParse(vramStr, out long vram2))
+                                {
+                                    return vram2;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return 0;
+        }
+
+        private long GetAMDVRAM()
+        {
+            try
+            {
+                using (var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"))
+                {
+                    if (key == null) return 0;
+
+                    foreach (string subKeyName in key.GetSubKeyNames())
+                    {
+                        using (var subKey = key.OpenSubKey(subKeyName))
+                        {
+                            if (subKey == null) continue;
+
+                            object vramObj = subKey.GetValue("HardwareInformation.MemorySize");
+                            if (vramObj != null)
+                            {
+                                string vramStr = vramObj.ToString();
+                                if (long.TryParse(vramStr, System.Globalization.NumberStyles.HexNumber, null, out long vram))
+                                {
+                                    return vram;
+                                }
+                                if (long.TryParse(vramStr, out long vram2))
+                                {
+                                    return vram2;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return 0;
+        }
+
+        private Dictionary<string, long> GetDirectXVRAM()
+        {
+            var vramDict = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                using (var factory = new SharpDX.DXGI.Factory1())
+                {
+                    int adapterCount = factory.GetAdapterCount();
+                    for (int i = 0; i < adapterCount; i++)
+                    {
+                        using (var adapter = factory.GetAdapter1(i))
+                        {
+                            var desc = adapter.Description;
+                            string name = desc.Description.ToLower();
+
+                            if (name.Contains("intel"))
+                            {
+                                vramDict[desc.Description] = 128 * 1024 * 1024;
+                            }
+                            else
+                            {
+                                long vram = desc.DedicatedVideoMemory;
+                                if (vram > 0 && IsValidVRAMValue(vram))
+                                {
+                                    vramDict[desc.Description] = vram;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return vramDict;
+        }
+
+        private void GetGPUInfo(SystemInfo info)
+        {
+            try
+            {
+                var gpuList = new List<string>();
+                var driverDict = new Dictionary<string, (string Version, string Date)>(StringComparer.OrdinalIgnoreCase);
+
+                try
+                {
+                    using (var driverSearcher = new ManagementObjectSearcher("SELECT DeviceName, DriverVersion, DriverDate FROM Win32_PnPSignedDriver WHERE DeviceClass = 'DISPLAY'"))
                     {
                         foreach (ManagementObject driver in driverSearcher.Get())
                         {
@@ -271,17 +512,40 @@ namespace VTStudioToolBox.Views
                             }
                         }
                     }
+                }
+                catch { }
 
-                    foreach (var gpu in hardwareInfo.VideoControllerList)
+                var directXVRAMDict = GetDirectXVRAM();
+
+                using (var searcher = new ManagementObjectSearcher("SELECT Name, AdapterRAM FROM Win32_VideoController"))
+                {
+                    foreach (ManagementObject gpu in searcher.Get())
                     {
-                        string name = gpu.Name?.Trim() ?? "未知";
+                        string name = gpu["Name"]?.ToString()?.Trim() ?? "未知";
 
-                        long vramBytes = (long)gpu.AdapterRAM;
+                        long vramBytes = Convert.ToInt64(gpu["AdapterRAM"] ?? 0);
+
+                        foreach (var kv in directXVRAMDict)
+                        {
+                            string dxName = kv.Key.ToLower();
+                            string wmiName = name.ToLower();
+
+                            if (dxName.Contains("nvidia") && wmiName.Contains("nvidia") ||
+                                dxName.Contains("amd") && wmiName.Contains("amd") ||
+                                dxName.Contains("radeon") && wmiName.Contains("radeon") ||
+                                dxName.Contains("geforce") && wmiName.Contains("geforce") ||
+                                dxName.Contains("intel") && wmiName.Contains("intel"))
+                            {
+                                vramBytes = kv.Value;
+                                break;
+                            }
+                        }
+
                         string vramStr = "未知";
                         if (vramBytes > 0)
                         {
                             double gb = vramBytes / (1024.0 * 1024.0 * 1024.0);
-                            vramStr = gb >= 1 ? $"{gb:F1}GB" : $"{(vramBytes / (1024.0 * 1024.0)):F0}MB";
+                            vramStr = gb >= 1 ? $"{gb:F0}GB" : $"{vramBytes / (1024.0 * 1024.0):F0}MB";
                         }
 
                         string gpuDriver = "";
@@ -331,17 +595,24 @@ namespace VTStudioToolBox.Views
                             gpuList.Add(displayName);
                         }
                     }
-
-                    info.GPU = FormatVerticalList(gpuList);
                 }
 
-                if (hardwareInfo.DriveList.Count > 0)
+                info.GPU = FormatVerticalList(gpuList);
+            }
+            catch { }
+        }
+
+        private void GetHDDInfo(SystemInfo info)
+        {
+            try
+            {
+                var drives = new List<string>();
+                using (var searcher = new ManagementObjectSearcher("SELECT Model, Size FROM Win32_DiskDrive"))
                 {
-                    var drives = new List<string>();
-                    foreach (var drive in hardwareInfo.DriveList)
+                    foreach (ManagementObject drive in searcher.Get())
                     {
-                        string model = drive.Model?.Trim() ?? "";
-                        long sizeBytes = (long)drive.Size;
+                        string model = drive["Model"]?.ToString()?.Trim() ?? "";
+                        long sizeBytes = Convert.ToInt64(drive["Size"] ?? 0);
 
                         if (string.IsNullOrEmpty(model) || sizeBytes < 1024L * 1024 * 1024 * 10) continue;
 
@@ -354,51 +625,108 @@ namespace VTStudioToolBox.Views
 
                         drives.Add($"{model} ({sizeStr})");
                     }
-                    info.HDD = FormatVerticalList(drives);
                 }
+                info.HDD = FormatVerticalList(drives);
+            }
+            catch { }
+        }
 
-                if (hardwareInfo.NetworkAdapterList.Count > 0)
+        private void GetNetworkInfo(SystemInfo info)
+        {
+            try
+            {
+                var adapters = new List<string>();
+                // 查询所有物理网卡，不限制连接状态
+                using (var searcher = new ManagementObjectSearcher("SELECT Name, MACAddress, PhysicalAdapter FROM Win32_NetworkAdapter"))
                 {
-                    var adapters = new List<string>();
-                    foreach (var adapter in hardwareInfo.NetworkAdapterList)
+                    foreach (ManagementObject adapter in searcher.Get())
                     {
-                        string name = adapter.Name?.Trim() ?? "";
+                        string name = adapter["Name"]?.ToString()?.Trim() ?? "";
+                        string macAddress = adapter["MACAddress"]?.ToString() ?? "";
+                        bool isPhysical = adapter["PhysicalAdapter"] != null && (bool)adapter["PhysicalAdapter"];
+
+                        // 只显示物理网卡，排除虚拟设备和软件网卡
                         if (!string.IsNullOrEmpty(name) &&
+                            isPhysical &&
+                            !string.IsNullOrEmpty(macAddress) &&
                             !name.Contains("Virtual", StringComparison.OrdinalIgnoreCase) &&
-                            !name.Contains("WAN Miniport") &&
-                            !name.Contains("Bluetooth") &&
-                            !name.Contains("蓝牙") &&
-                            !name.Contains("Loopback") &&
-                            !string.IsNullOrEmpty(adapter.MACAddress))
+                            !name.Contains("WAN Miniport", StringComparison.OrdinalIgnoreCase) &&
+                            !name.Contains("Bluetooth", StringComparison.OrdinalIgnoreCase) &&
+                            !name.Contains("蓝牙", StringComparison.OrdinalIgnoreCase) &&
+                            !name.Contains("Loopback", StringComparison.OrdinalIgnoreCase) &&
+                            !name.Contains("Teredo", StringComparison.OrdinalIgnoreCase) &&
+                            !name.Contains("Pseudo", StringComparison.OrdinalIgnoreCase) &&
+                            !name.Contains("6to4", StringComparison.OrdinalIgnoreCase) &&
+                            !name.Contains("ISATAP", StringComparison.OrdinalIgnoreCase))
                         {
                             adapters.Add(name);
                         }
                     }
-                    info.Network = FormatVerticalList(adapters);
                 }
+                info.Network = FormatVerticalList(adapters);
+            }
+            catch { }
+        }
 
-                if (hardwareInfo.SoundDeviceList.Count > 0)
+        private void GetAudioInfo(SystemInfo info)
+        {
+            try
+            {
+                var audioDevices = new List<string>();
+                using (var searcher = new ManagementObjectSearcher("SELECT Name FROM Win32_SoundDevice"))
                 {
-                    var audioDevices = new List<string>();
-                    foreach (var sound in hardwareInfo.SoundDeviceList)
+                    foreach (ManagementObject sound in searcher.Get())
                     {
-                        string name = sound.Name?.Trim();
+                        string name = sound["Name"]?.ToString()?.Trim();
                         if (!string.IsNullOrEmpty(name))
                         {
                             audioDevices.Add(name);
                         }
                     }
-                    info.Audio = FormatVerticalList(audioDevices);
+                }
+                info.Audio = FormatVerticalList(audioDevices);
+            }
+            catch { }
+        }
+
+        private string GetMonitorInfo()
+        {
+            var displays = new List<string>();
+
+            try
+            {
+                using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity WHERE Service = 'monitor'"))
+                {
+                    foreach (ManagementObject monitor in searcher.Get())
+                    {
+                        string name = monitor["Name"]?.ToString() ?? "";
+                        if (!string.IsNullOrEmpty(name))
+                        {
+                            string cleaned = ProcessMonitorName(name);
+                            if (!string.IsNullOrEmpty(cleaned)) displays.Add(cleaned);
+                        }
+                    }
                 }
 
-                info.Display = GetMonitorInfo();
+                if (displays.Count == 0)
+                {
+                    using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_DesktopMonitor"))
+                    {
+                        foreach (ManagementObject monitor in searcher.Get())
+                        {
+                            string name = monitor["Name"]?.ToString() ?? "";
+                            if (!string.IsNullOrEmpty(name))
+                            {
+                                string cleaned = ProcessMonitorName(name);
+                                if (!string.IsNullOrEmpty(cleaned)) displays.Add(cleaned);
+                            }
+                        }
+                    }
+                }
             }
-            catch (Exception ex)
-            {
-                info.OSInfo = $"获取系统信息时出错：{ex.Message}";
-            }
+            catch { }
 
-            return info;
+            return FormatVerticalList(displays);
         }
 
         private string CleanCpuName(string cpuName)
@@ -460,46 +788,6 @@ namespace VTStudioToolBox.Views
             }
             catch { }
             return wmiDateTime;
-        }
-
-        private string GetMonitorInfo()
-        {
-            var displays = new List<string>();
-
-            try
-            {
-                using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity WHERE Service = 'monitor'"))
-                {
-                    foreach (ManagementObject monitor in searcher.Get())
-                    {
-                        string name = monitor["Name"]?.ToString() ?? "";
-                        if (!string.IsNullOrEmpty(name))
-                        {
-                            string cleaned = ProcessMonitorName(name);
-                            if (!string.IsNullOrEmpty(cleaned)) displays.Add(cleaned);
-                        }
-                    }
-                }
-
-                if (displays.Count == 0)
-                {
-                    using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_DesktopMonitor"))
-                    {
-                        foreach (ManagementObject monitor in searcher.Get())
-                        {
-                            string name = monitor["Name"]?.ToString() ?? "";
-                            if (!string.IsNullOrEmpty(name))
-                            {
-                                string cleaned = ProcessMonitorName(name);
-                                if (!string.IsNullOrEmpty(cleaned)) displays.Add(cleaned);
-                            }
-                        }
-                    }
-                }
-            }
-            catch { }
-
-            return FormatVerticalList(displays);
         }
 
         private string ProcessMonitorName(string monitorName)

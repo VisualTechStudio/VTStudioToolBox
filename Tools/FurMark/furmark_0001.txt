@@ -1,0 +1,61 @@
+<->[NORMAL]#00000001#Wed Feb  4 20:15:19 2026#Geeks3D FurMark 1.39.1.0 is starting up...
+<->[NORMAL]#00000002#Wed Feb  4 20:15:19 2026#New FurMark 2 with OpenGL and Vulkan support: https://geeks3d.com/furmark/v2/
+<->[NORMAL]#00000003#Wed Feb  4 20:15:19 2026#Discord server: https://geeks3d.com/discord/
+<->[NORMAL]#00000004#Wed Feb  4 20:15:19 2026#FurMark folder: C:\图吧工具箱\图吧工具箱202507\tools\烤鸡工具\FurMark\
+<->[NORMAL]#00000005#Wed Feb  4 20:15:19 2026#Log file: C:\图吧工具箱\图吧工具箱202507\tools\烤鸡工具\FurMark\furmark_0001.txt
+<->[NORMAL]#00000006#Wed Feb  4 20:15:20 2026#CPU/System info:
+<->[NORMAL]#00000007#Wed Feb  4 20:15:20 2026#- CPU: AMD Ryzen 9 7940HX with Radeon Graphics        
+<->[NORMAL]#00000008#Wed Feb  4 20:15:21 2026#- CPU speed: 2395 MHz
+<->[NORMAL]#00000009#Wed Feb  4 20:15:21 2026#- System memory: 31964 MB
+<->[NORMAL]#00000010#Wed Feb  4 20:15:21 2026#- OS: Windows 11 64-bit build 26200
+<->[NORMAL]#00000011#Wed Feb  4 20:15:21 2026#Detecting GPUs...
+<->[NORMAL]#00000012#Wed Feb  4 20:15:21 2026#Found 4 GPUs.
+<->[NORMAL]#00000013#Wed Feb  4 20:15:21 2026#- GPU 1:  GeForce RTX 4060 Laptop GPU
+<->[NORMAL]#00000014#Wed Feb  4 20:15:21 2026#  - Cores: 3072
+<->[NORMAL]#00000015#Wed Feb  4 20:15:21 2026#  - Memory size: 8187MB
+<->[NORMAL]#00000016#Wed Feb  4 20:15:21 2026#  - Memory type: GDDR6
+<->[NORMAL]#00000017#Wed Feb  4 20:15:21 2026#  - TDP: 115W
+<->[NORMAL]#00000018#Wed Feb  4 20:15:21 2026#  - Bus ID: 1
+<->[NORMAL]#00000019#Wed Feb  4 20:15:21 2026#  - Bios: 95.07.40.40.05
+<->[NORMAL]#00000020#Wed Feb  4 20:15:21 2026#  - Graphics driver: R591.86
+<->[NORMAL]#00000021#Wed Feb  4 20:15:21 2026#  - GPU temperature: 35.0癈
+<->[NORMAL]#00000022#Wed Feb  4 20:15:21 2026#  - True clocks - GPU clock: 1890MHz - Memory clock: 8300MHz - GPU voltage: 0.000V
+<->[NORMAL]#00000023#Wed Feb  4 20:15:21 2026#  - GPU base clock: 1545MHz - GPU boost clock: 1890MHz
+<->[NORMAL]#00000024#Wed Feb  4 20:15:21 2026#- GPU 2:  AMD Radeon(TM) 610M
+<->[NORMAL]#00000025#Wed Feb  4 20:15:21 2026#  - Cores: 0
+<->[NORMAL]#00000026#Wed Feb  4 20:15:21 2026#  - Memory size: 512MB
+<->[NORMAL]#00000027#Wed Feb  4 20:15:21 2026#  - Memory type: DDR5
+<->[NORMAL]#00000028#Wed Feb  4 20:15:21 2026#  - TDP: 0W
+<->[NORMAL]#00000029#Wed Feb  4 20:15:21 2026#  - Bus ID: 6
+<->[NORMAL]#00000030#Wed Feb  4 20:15:21 2026#  - Bios: 032.019.000.008/102-RAPHAEL-008 (2022/09/26 22:19)
+<->[NORMAL]#00000031#Wed Feb  4 20:15:21 2026#  - Graphics driver: 32.0.21041.1000
+<->[NORMAL]#00000032#Wed Feb  4 20:15:21 2026#  - AMD Radeon: PMLog monitoring started OK.
+<->[NORMAL]#00000033#Wed Feb  4 20:15:21 2026#  - GPU temperature: 0.0癈
+<->[NORMAL]#00000034#Wed Feb  4 20:15:21 2026#WARNING: true GPU core and memory clocks for GPU 2 are not available on this platform. Only Pstate clocks will be displayed.
+<->[NORMAL]#00000035#Wed Feb  4 20:15:21 2026#- GPU 3:  GameViewer Virtual Display Adapter
+<->[NORMAL]#00000036#Wed Feb  4 20:15:21 2026#  - Cores: 0
+<->[NORMAL]#00000037#Wed Feb  4 20:15:21 2026#  - Memory size: 0MB
+<->[NORMAL]#00000038#Wed Feb  4 20:15:21 2026#  - Memory type: 
+<->[NORMAL]#00000039#Wed Feb  4 20:15:21 2026#  - TDP: 0W
+<->[NORMAL]#00000040#Wed Feb  4 20:15:21 2026#  - Bus ID: -1
+<->[NORMAL]#00000041#Wed Feb  4 20:15:21 2026#  - Bios: 
+<->[NORMAL]#00000042#Wed Feb  4 20:15:21 2026#  - Graphics driver: 17.13.25.697
+<->[NORMAL]#00000043#Wed Feb  4 20:15:21 2026#- GPU 4:  Parsec Virtual Display Adapter
+<->[NORMAL]#00000044#Wed Feb  4 20:15:21 2026#  - Cores: 0
+<->[NORMAL]#00000045#Wed Feb  4 20:15:21 2026#  - Memory size: 0MB
+<->[NORMAL]#00000046#Wed Feb  4 20:15:21 2026#  - Memory type: 
+<->[NORMAL]#00000047#Wed Feb  4 20:15:21 2026#  - TDP: 0W
+<->[NORMAL]#00000048#Wed Feb  4 20:15:21 2026#  - Bus ID: -1
+<->[NORMAL]#00000049#Wed Feb  4 20:15:21 2026#  - Bios: 
+<->[NORMAL]#00000050#Wed Feb  4 20:15:21 2026#  - Graphics driver: 0.45.0.0
+<->[NORMAL]#00000051#Wed Feb  4 20:15:21 2026#GPU monitoring thread started up ok.
+<->[NORMAL]#00000052#Wed Feb  4 20:15:21 2026#oZone3D Engine is starting up - kernel build: [v3.4.3 - Jan 16 2023 @ 20:43:01] - codename: Kantalium
+<->[NORMAL]#00000053#Wed Feb  4 20:15:21 2026#oZone3D initialization in progress...
+<->[NORMAL]#00000054#Wed Feb  4 20:15:21 2026#oZone3D - OpenGL renderer creation ok.
+<->[NORMAL]#00000055#Wed Feb  4 20:15:21 2026#o3RendererOpenGL INFO: OpenGL version: 4.6.0 NVIDIA 591.86
+<->[NORMAL]#00000056#Wed Feb  4 20:15:21 2026#o3RendererOpenGL INFO: OpenGL Shading Language (GLSL) version: 4.60 NVIDIA
+<->[NORMAL]#00000057#Wed Feb  4 20:15:21 2026#oZone3D initialization ok.
+<->[NORMAL]#00000058#Wed Feb  4 20:15:21 2026#Checking for new version...
+<->[NORMAL]#00000059#Wed Feb  4 20:15:23 2026#A new version is available: 1.39.3.0
+<->[NORMAL]#00000060#Wed Feb  4 20:15:23 2026#oZone3D shutdown ok.
+<->[NORMAL]#00000061#Wed Feb  4 20:15:23 2026#Geeks3D FurMark shutdown OK.
