@@ -1,6 +1,15 @@
-# VTStudioToolBox
-
-A developer's toolkit on Windows - 集成系统信息检测与硬件工具管理的专业Windows工具箱
+<div align="center">
+             <h1>VTStudioToolBox</h1>
+             A developer's toolkit on Windows - 集成系统信息检测与硬件工具管理的专业Windows工具箱
+             <br>
+             <br>
+             <img src="https://img.shields.io/github/release/VisualTechStudio/VTStudioToolBox" />
+             <img src="https://img.shields.io/github/downloads/VisualTechStudio/VTStudioToolBox/total?color=white&style=plastic" />
+             <img src="https://img.shields.io/github/stars/VisualTechStudio/VTStudioToolBox" />
+             <br>
+             <br>
+             <a href="README_en_US.md">English Readme</a>
+</div>
 
 ## 功能特性
 
