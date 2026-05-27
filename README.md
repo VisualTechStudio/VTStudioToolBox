@@ -51,13 +51,21 @@ CPU检测 | CPU-Z | 处理器详细信息、缓存、主板信息
 
 VTStudioToolBox/
     Assets/                     # 应用资源
-        *.png                  # 应用图标
-        dwg.png, kpdw.png, xcy.png
+        LockScreenLogo.scale-200.png
+        SplashScreen.scale-200.png
+        Square150x150Logo.scale-200.png
+        Square44x44Logo.scale-200.png
+        Square44x44Logo.targetsize-24_altform-unplated.png
+        StoreLogo.png
+        Wide310x150Logo.scale-200.png
+        dwg.png
+        kpdw.png
+        xcy.png
     Helpers/                   # 辅助工具类
         FileCacheManager.cs     # 文件缓存管理器
         SystemInfo.cs           # 系统信息数据模型
     Models/                    # 业务数据模型
-        ProjectItem.cs          # 项目项抽象模型
+        Projectltem.cs          # 项目项抽象模型
     Properties/                # 项目配置
         PublishProfiles/        # MSIX发布配置
             win-arm64.pubxml
@@ -86,7 +94,7 @@ VTStudioToolBox/
     App.xaml.cs                # 应用生命周期管理
     MainWindow.xaml            # 主窗口布局
     MainWindow.xaml.cs         # 主窗口逻辑
-    CacheManager.cs            # 缓存管理接口(预留)
+    CacheMaanager.cs           # 缓存管理接口(预留)
     ChangeLog.cs               # 变更日志常量
     cfg.cs                     # 应用配置常量
     LICENSE                    # GPLv3许可证
@@ -119,17 +127,18 @@ Windows App SDK | 1.6 | 1.6.250108002
 
 ### 安装依赖
 
-powershell
+```powershell
 # 安装 .NET 8 SDK
 winget install Microsoft.DotNet.SDK.8
 
 # 安装 Windows App SDK 运行时
 winget install Microsoft.WindowsAppSDK
+```
 
 
 ### 编译构建
 
-powershell
+```powershell
 # 克隆仓库
 git clone https://github.com/Notepad233/VTStudioToolBox.git
 cd VTStudioToolBox
@@ -148,16 +157,18 @@ dotnet publish --configuration Release --platform x86 --self-contained true --ou
 
 # 发布构建 (ARM64)
 dotnet publish --configuration Release --platform ARM64 --self-contained true --output ./publish/arm64
+```
 
 
 ### 运行应用
 
-powershell
+```powershell
 # 开发模式运行
 dotnet run --configuration Debug --platform x64
 
 # 运行发布版本
 ./publish/x64/VTStudioToolBox.exe
+```
 
 
 ## 核心模块详解
@@ -166,7 +177,7 @@ dotnet run --configuration Debug --platform x64
 
 职责：应用生命周期管理、全局主题配置
 
-csharp
+```csharp
 public partial class App : Application
 {
     private Window? m_window;
@@ -184,6 +195,7 @@ public partial class App : Application
         m_window.Activate();
     }
 }
+```
 
 
 ### 2. 主窗口 (MainWindow.xaml.cs)
@@ -196,13 +208,14 @@ public partial class App : Application
 - 响应式窗口：DPI感知的窗口尺寸调整
 - 导航路由：_pageRoutes 字典管理页面映射
 
-csharp
+```csharp
 private readonly Dictionary<string, Type> _pageRoutes = new()
 {
     ["dashboard"] = typeof(DashboardPage),
     ["utilities"] = typeof(UtilitiesPage),
     ["settings"] = typeof(SettingsPage),
 };
+```
 
 
 ### 3. 仪表盘页面 (DashboardPage.xaml.cs)
@@ -221,7 +234,7 @@ LoadSystemInfoWithCacheAsync()
 
 WMI并行查询优化：
 
-csharp
+```csharp
 var tasks = new List<Task>
 {
     Task.Run(() => GetOSInfo(info)),
@@ -231,6 +244,7 @@ var tasks = new List<Task>
     // ... 其他查询
 };
 Task.WaitAll(tasks.ToArray(), TimeSpan.FromSeconds(10));
+```
 
 
 ### 4. 工具中心 (UtilitiesPage.xaml.cs)
@@ -239,7 +253,7 @@ Task.WaitAll(tasks.ToArray(), TimeSpan.FromSeconds(10));
 
 图标加载机制：
 
-csharp
+```csharp
 private void LoadIconFromPath(Image imageControl, string toolPath)
 {
     if (File.Exists(toolPath))
@@ -251,6 +265,7 @@ private void LoadIconFromPath(Image imageControl, string toolPath)
         // ... 绑定到Image控件
     }
 }
+```
 
 
 ### 5. 缓存管理器 (Helpers/FileCacheManager.cs)
@@ -297,10 +312,11 @@ System.Drawing.Common | 8.0.0 | GDI+图像操作、图标提取
 1. 将工具文件放入 Tools/{ToolName}/ 目录
 2. 在 VTStudioToolBox.csproj 中添加Content引用
 
-xml
+```xml
 <Content Include="Tools\MyTool\mytool.exe">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 </Content>
+```
 
 
 3. 在 UtilitiesPage.xaml 中添加工具按钮和图标
@@ -314,11 +330,12 @@ xml
 
 ### 主题定制
 
-csharp
+```csharp
 // 在 App.xaml.cs 中修改主题
 rootElement.RequestedTheme = ElementTheme.Light;   // 浅色主题
 rootElement.RequestedTheme = ElementTheme.Dark;    // 深色主题
 rootElement.RequestedTheme = ElementTheme.Default; // 跟随系统
+```
 
 
 ## 性能优化
@@ -357,7 +374,7 @@ rootElement.RequestedTheme = ElementTheme.Default; // 跟随系统
 
 ### 自动化脚本示例
 
-powershell
+```powershell
 # build.ps1 - 自动化构建脚本
 param(
     [string]$Configuration = "Release",
@@ -377,6 +394,7 @@ foreach ($platform in $Platforms) {
 }
 
 Write-Host "All builds completed successfully"
+```
 
 
 ## 许可证
@@ -431,8 +449,3 @@ Type：
 - perf：性能优化
 - test：测试相关
 - chore：构建/工具变更
-
-## 联系方式
-
-- 官方网站：https://vtstudio.space
-- 许可证：GPLv3
