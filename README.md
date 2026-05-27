@@ -49,58 +49,60 @@ CPU检测 | CPU-Z | 处理器详细信息、缓存、主板信息
 
 ### 目录结构
 
+```
 VTStudioToolBox/
-    Assets/                     # 应用资源
-        LockScreenLogo.scale-200.png
-        SplashScreen.scale-200.png
-        Square150x150Logo.scale-200.png
-        Square44x44Logo.scale-200.png
-        Square44x44Logo.targetsize-24_altform-unplated.png
-        StoreLogo.png
-        Wide310x150Logo.scale-200.png
-        dwg.png
-        kpdw.png
-        xcy.png
-    Helpers/                   # 辅助工具类
-        FileCacheManager.cs     # 文件缓存管理器
-        SystemInfo.cs           # 系统信息数据模型
-    Models/                    # 业务数据模型
-        Projectltem.cs          # 项目项抽象模型
-    Properties/                # 项目配置
-        PublishProfiles/        # MSIX发布配置
-            win-arm64.pubxml
-            win-x64.pubxml
-            win-x86.pubxml
-        launchSettings.json     # 开发环境启动设置
-    Tools/                     # 第三方工具集
-        AIDA64/
-        CoreTemp/
-        CrystalDiskInfo/
-        CrystalDiskMark/
-        Dism++/
-        FurMark/
-        GPUZ/
-        Geek Uninstaller/
-        hwinfo/
-        color/
-    Views/                     # UI页面
-        DashboardPage.xaml     # 仪表盘页面
-        DashboardPage.xaml.cs
-        UtilitiesPage.xaml     # 工具中心页面
-        UtilitiesPage.xaml.cs
-        SettingsPage.xaml      # 设置页面
-        SettingsPage.xaml.cs
-    App.xaml                   # 应用入口定义
-    App.xaml.cs                # 应用生命周期管理
-    MainWindow.xaml            # 主窗口布局
-    MainWindow.xaml.cs         # 主窗口逻辑
-    CacheMaanager.cs           # 缓存管理接口(预留)
-    ChangeLog.cs               # 变更日志常量
-    cfg.cs                     # 应用配置常量
-    LICENSE                    # GPLv3许可证
-    Package.appxmanifest       # MSIX打包清单
-    README.md                  # 项目文档
-    VTStudioToolBox.csproj     # MSBuild项目配置
+├── Assets/                     # 应用资源
+│   ├── LockScreenLogo.scale-200.png
+│   ├── SplashScreen.scale-200.png
+│   ├── Square150x150Logo.scale-200.png
+│   ├── Square44x44Logo.scale-200.png
+│   ├── Square44x44Logo.targetsize-24_altform-unplated.png
+│   ├── StoreLogo.png
+│   ├── Wide310x150Logo.scale-200.png
+│   ├── dwg.png
+│   ├── kpdw.png
+│   └── xcy.png
+├── Helpers/                   # 辅助工具类
+│   ├── FileCacheManager.cs     # 文件缓存管理器
+│   └── SystemInfo.cs           # 系统信息数据模型
+├── Models/                    # 业务数据模型
+│   └── Projectltem.cs          # 项目项抽象模型
+├── Properties/                # 项目配置
+│   ├── PublishProfiles/        # MSIX发布配置
+│   │   ├── win-arm64.pubxml
+│   │   ├── win-x64.pubxml
+│   │   └── win-x86.pubxml
+│   └── launchSettings.json     # 开发环境启动设置
+├── Tools/                     # 第三方工具集
+│   ├── AIDA64/
+│   ├── CoreTemp/
+│   ├── CrystalDiskInfo/
+│   ├── CrystalDiskMark/
+│   ├── Dism++/
+│   ├── FurMark/
+│   ├── GPUZ/
+│   ├── Geek Uninstaller/
+│   ├── hwinfo/
+│   └── color/
+├── Views/                     # UI页面
+│   ├── DashboardPage.xaml     # 仪表盘页面
+│   ├── DashboardPage.xaml.cs
+│   ├── UtilitiesPage.xaml     # 工具中心页面
+│   ├── UtilitiesPage.xaml.cs
+│   ├── SettingsPage.xaml      # 设置页面
+│   └── SettingsPage.xaml.cs
+├── App.xaml                   # 应用入口定义
+├── App.xaml.cs                # 应用生命周期管理
+├── MainWindow.xaml            # 主窗口布局
+├── MainWindow.xaml.cs         # 主窗口逻辑
+├── CacheMaanager.cs           # 缓存管理接口(预留)
+├── ChangeLog.cs               # 变更日志常量
+├── cfg.cs                     # 应用配置常量
+├── LICENSE                    # GPLv3许可证
+├── Package.appxmanifest       # MSIX打包清单
+├── README.md                  # 项目文档
+└── VTStudioToolBox.csproj     # MSBuild项目配置
+```
 
 ### 架构设计
 
