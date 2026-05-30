@@ -4,7 +4,6 @@
              <br>
              <br>
              <img src="https://img.shields.io/github/release/VisualTechStudio/VTStudioToolBox" />
-             <img src="https://img.shields.io/github/downloads/VisualTechStudio/VTStudioToolBox/total?color=white&style=plastic" />
              <img src="https://img.shields.io/github/stars/VisualTechStudio/VTStudioToolBox" />
              <br>
              <br>
