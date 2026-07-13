@@ -26,6 +26,19 @@
 显示器 | 显示器型号 | WMI Win32_PnPEntity
 系统 | OS版本、安装时间、开机时长、计算机名 | WMI Win32_OperatingSystem
 
+### 网络检测模块
+
+检测协议 | 检测项 | 实现方式
+--------- | ------ | --------
+RFC 3489 | NAT类型（Open Internet / Full Cone / Restricted Cone / Port Restricted Cone / Symmetric） | STUN UDP绑定测试 + CHANGE-REQUEST
+RFC 5780 | 映射行为（Endpoint Independent / Address Dependent / Address and Port Dependent） | STUN UDP绑定测试 + OTHER-ADDRESS + 多步状态机
+RFC 5780 | 过滤行为（Endpoint Independent / Address Dependent / Address and Port Dependent） | CHANGE-REQUEST change IP/port 组合测试
+
+- 共享STUN服务器选择：两种协议共用同一服务器下拉框，一次点击同时执行两项检测
+- 并行检测：RFC 3489与RFC 5780通过Task.WhenAll并行执行，缩短总耗时
+- 支持9个预置STUN服务器，支持手动输入自定义服务器地址
+- DNS-over-HTTPS解析，支持系统DNS回退
+
 ### 性能优化特性
 
 - 智能缓存机制：首次检测后缓存至 %LOCALAPPDATA%\VTStudioToolBox\Cache，缓存有效期24小时
@@ -71,10 +84,21 @@ VTStudioToolBox/
 │   ├── kpdw.png
 │   └── xcy.png
 ├── Helpers/                   # 辅助工具类
+│   ├── DnsResolver.cs          # DNS-over-HTTPS解析器
+│   ├── EulaHelper.cs           # EULA协议管理
 │   ├── FileCacheManager.cs     # 文件缓存管理器
+│   ├── FirewallHelper.cs       # Windows防火墙规则管理
+│   ├── Logger.cs               # 文件日志记录器
 │   └── SystemInfo.cs           # 系统信息数据模型
 ├── Models/                    # 业务数据模型
 │   └── Projectltem.cs          # 项目项抽象模型
+├── Network/                   # 网络检测模块
+│   ├── NatType.cs              # NAT类型/映射行为/过滤行为枚举
+│   ├── StunAttribute.cs        # STUN属性解析（RFC 3489/5389）
+│   ├── StunClient.cs           # RFC 3489经典NAT类型检测客户端
+│   ├── Stun5780Client.cs       # RFC 5780 NAT行为发现状态机
+│   ├── StunMessage.cs          # STUN消息序列化/反序列化
+│   └── StunServer.cs           # STUN服务器地址解析
 ├── Properties/                # 项目配置
 │   ├── PublishProfiles/        # MSIX发布配置
 │   │   ├── win-arm64.pubxml
@@ -95,6 +119,8 @@ VTStudioToolBox/
 ├── Views/                     # UI页面
 │   ├── DashboardPage.xaml     # 仪表盘页面
 │   ├── DashboardPage.xaml.cs
+│   ├── NetworkPage.xaml       # 网络检测页面（RFC 3489 + RFC 5780）
+│   ├── NetworkPage.xaml.cs
 │   ├── UtilitiesPage.xaml     # 工具中心页面
 │   ├── UtilitiesPage.xaml.cs
 │   ├── SettingsPage.xaml      # 设置页面
@@ -116,13 +142,13 @@ VTStudioToolBox/
 
 采用 MVVM Lite 架构模式：
 
-View Layer: MainWindow → DashboardPage → UtilitiesPage → SettingsPage
+View Layer: MainWindow → DashboardPage → NetworkPage → UtilitiesPage → SettingsPage
     ↓ Data Binding / Events
 ViewModel Layer: 业务逻辑直接在Code-Behind实现，轻量化设计
     ↓ Method Calls
-Model Layer: SystemInfo(DTO) + FileCacheManager(数据持久化)
-    ↓ WMI / Registry / DirectX
-System Layer: Windows Management Instrumentation、Windows Registry、DirectX Graphics Infrastructure
+Model Layer: SystemInfo(DTO) + FileCacheManager(数据持久化) + StunClient/Stun5780Client(网络检测)
+    ↓ WMI / Registry / DirectX / UDP
+System Layer: Windows Management Instrumentation、Windows Registry、DirectX Graphics Infrastructure、STUN Protocol (RFC 3489/5780)
 
 ## 快速开始
 
@@ -131,15 +157,15 @@ System Layer: Windows Management Instrumentation、Windows Registry、DirectX Gr
 组件 | 最低版本 | 推荐版本
 ----- | -------- | --------
 Windows OS | 10 1809 (10.0.17763.0) | 11 22H2+
-.NET SDK | 8.0.100 | 8.0.300+
+.NET SDK | 10.0.100 | 10.0.300+
 Visual Studio | 2022 17.4 | 2022 17.10+
 Windows App SDK | 1.6 | 1.6.250108002
 
 ### 安装依赖
 
 ```powershell
-# 安装 .NET 8 SDK
-winget install Microsoft.DotNet.SDK.8
+# 安装 .NET 10 SDK
+winget install Microsoft.DotNet.SDK.10
 
 # 安装 Windows App SDK 运行时
 winget install Microsoft.WindowsAppSDK
@@ -287,6 +313,43 @@ private void LoadIconFromPath(Image imageControl, string toolPath)
 - 序列化：System.Text.Json，CamelCase命名策略
 - 过期策略：基于时间的自动过期清理
 - 异常处理：静默失败，不影响主流程
+
+### 6. 网络检测模块 (Network/)
+
+职责：NAT类型检测与NAT行为发现
+
+RFC 3489 经典NAT类型检测流程：
+
+StunClient.QueryAsync()
+    ↓
+Test I: Binding Request → 获取MAPPED-ADDRESS + CHANGED-ADDRESS
+    ↓
+Test II: CHANGE-REQUEST (change IP+port) → OpenInternet / FullCone
+    ↓
+Test I #2: Binding Request to CHANGED-ADDRESS → 检测Symmetric NAT
+    ↓
+Test III: CHANGE-REQUEST (change port) → RestrictedCone / PortRestrictedCone
+
+RFC 5780 NAT行为发现流程：
+
+Stun5780Client.QueryAsync()
+    ↓
+Binding Test: Binding Request → 获取XOR-MAPPED-ADDRESS + OTHER-ADDRESS
+    ↓
+Filtering Test II: CHANGE-REQUEST (change IP+port) → EndpointIndependent Filtering
+    ↓
+Filtering Test III: CHANGE-REQUEST (change port) → AddressDependent / AddressAndPortDependent Filtering
+    ↓
+Mapping Test II: Binding Request to (OTHER_ADDRESS, server_port) → EndpointIndependent Mapping
+    ↓
+Mapping Test III: Binding Request to OTHER_ADDRESS → AddressDependent / AddressAndPortDependent Mapping
+
+技术特性：
+- 双协议并行检测：Task.WhenAll同时执行RFC 3489和RFC 5780
+- STUN消息兼容：自动识别RFC 3489（MagicCookie=0）和RFC 5389（MagicCookie=0x2112A442）
+- XOR地址解码：支持XOR-MAPPED-ADDRESS和OTHER-ADDRESS属性解析
+- DNS-over-HTTPS：通过Cloudflare DoH解析服务器地址，支持系统DNS回退
+- 防火墙管理：自动创建Windows防火墙规则允许UDP流量
 
 ## 技术栈
 

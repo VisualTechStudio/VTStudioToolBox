@@ -5,10 +5,9 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Windows.Graphics;
+using VTStudioToolBox.Helpers;
 using VTStudioToolBox.Views;
 
 namespace VTStudioToolBox
@@ -19,12 +18,10 @@ namespace VTStudioToolBox
         {
             ["dashboard"] = typeof(DashboardPage),
             ["utilities"] = typeof(UtilitiesPage),
+            ["network"] = typeof(NetworkPage),
+            ["macos"] = typeof(MacOSPage),
             ["settings"] = typeof(SettingsPage),
         };
-
-        private const string EULA_FOLDER_NAME = "VTStudioToolBox";
-        private const string EULA_FILE_NAME = "Eula.txt";
-        private const string AGREED_CONTENT = "true";
 
         private bool _hasCheckedEula = false;
 
@@ -38,6 +35,33 @@ namespace VTStudioToolBox
 
             NavView.SelectionChanged += OnNavigationSelectionChanged;
             this.Activated += OnWindowActivated;
+
+            // Update language after NavView is fully loaded
+            NavView.Loaded += (s, e) => UpdateLanguage();
+        }
+
+        private void UpdateLanguage()
+        {
+            NavDashboard.Content = LanguageHelper.GetString("NavDashboard");
+            NavUtilities.Content = LanguageHelper.GetString("NavUtilities");
+            NavNetwork.Content = LanguageHelper.GetString("NavNetwork");
+            NavHackintosh.Content = LanguageHelper.GetString("NavHackintosh");
+
+            if (NavView.SettingsItem is NavigationViewItem settingsItem)
+            {
+                settingsItem.Content = LanguageHelper.GetString("NavSettings");
+            }
+
+            EulaText.Inlines.Clear();
+            EulaText.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = LanguageHelper.GetString("EulaPrompt") + " " });
+            var hyperlink = new Microsoft.UI.Xaml.Documents.Hyperlink
+            {
+                NavigateUri = new Uri("https://toolboxeula.vtstudio.space")
+            };
+            hyperlink.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = LanguageHelper.GetString("LabelUserAgreement") });
+            EulaText.Inlines.Add(hyperlink);
+
+            BtnAgree.Content = LanguageHelper.GetString("EulaAgree");
         }
 
         private void OnWindowActivated(object sender, WindowActivatedEventArgs args)
@@ -53,56 +77,32 @@ namespace VTStudioToolBox
             {
                 _hasCheckedEula = true;
 
-                if (HasUserAgreedToEula())
+                if (EulaHelper.HasUserAgreed())
                 {
+                    Logger.Info("MainWindow", "EULA already agreed, starting normal flow");
                     StartNormalAppFlow();
                 }
                 else
                 {
+                    Logger.Info("MainWindow", "EULA not agreed, showing overlay");
                     EulaOverlay.Visibility = Visibility.Visible;
                     NavView.Visibility = Visibility.Collapsed;
                 }
             }
         }
 
-        private bool HasUserAgreedToEula()
+        private async void BtnAgree_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string folderPath = Path.Combine(localAppData, EULA_FOLDER_NAME);
-                string filePath = Path.Combine(folderPath, EULA_FILE_NAME);
-
-                if (File.Exists(filePath))
-                {
-                    string content = File.ReadAllText(filePath);
-                    return content.Trim().Equals(AGREED_CONTENT, StringComparison.OrdinalIgnoreCase);
-                }
-            }
-            catch { }
-            return false;
-        }
-
-        private void BtnAgree_Click(object sender, RoutedEventArgs e)
-        {
-            _ = Task.Run(() =>
-            {
-                try
-                {
-                    string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                    string folderPath = Path.Combine(localAppData, EULA_FOLDER_NAME);
-                    Directory.CreateDirectory(folderPath);
-                    string filePath = Path.Combine(folderPath, EULA_FILE_NAME);
-                    File.WriteAllText(filePath, AGREED_CONTENT);
-                }
-                catch { }
-            });
+            Logger.Dev("MainWindow", "EULA agree button clicked");
+            _ = EulaHelper.SetUserAgreedAsync();
+            Logger.Info("MainWindow", "User agreed to EULA");
 
             StartNormalAppFlow();
         }
 
         private void StartNormalAppFlow()
         {
+            Logger.Dev("MainWindow", "Starting normal app flow");
             EulaOverlay.Visibility = Visibility.Collapsed;
             NavView.Visibility = Visibility.Visible;
             NavigateTo("dashboard");
@@ -176,6 +176,16 @@ namespace VTStudioToolBox
         {
             if (_pageRoutes.TryGetValue(pageKey, out var pageType))
             {
+                string displayName = pageKey switch
+                {
+                    "dashboard" => "Dashboard",
+                    "utilities" => "Utilities",
+                    "network" => "Network",
+                    "macos" => "Hackintosh",
+                    "settings" => "Settings",
+                    _ => pageKey
+                };
+                Logger.Info("MainWindow", $"Navigating to {displayName}");
                 ContentFrame.Navigate(pageType);
             }
         }

@@ -1,5 +1,3 @@
-using System;
-
 namespace VTStudioToolBox.Helpers
 {
     public class SystemInfo

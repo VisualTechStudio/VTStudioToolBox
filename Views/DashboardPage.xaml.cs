@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
@@ -14,34 +14,114 @@ namespace VTStudioToolBox.Views
 {
     public sealed partial class DashboardPage : Page
     {
+        private DispatcherTimer? _bootTimer;
+        private DateTime? _bootTime;
+
         public DashboardPage()
         {
             this.InitializeComponent();
+            UpdateLanguage();
             this.Loaded += DashboardPage_Loaded;
+            this.Unloaded += DashboardPage_Unloaded;
+        }
+
+        private void UpdateLanguage()
+        {
+            PageTitle.Text = LanguageHelper.GetString("DashboardTitle");
+            PageSubtitle.Text = LanguageHelper.GetString("DashboardSubtitle");
+            LoadingText.Text = LanguageHelper.GetString("LoadingHardware");
+            HardwareInfoHeader.Text = LanguageHelper.GetString("HardwareInfo");
+            SystemInfoHeader.Text = LanguageHelper.GetString("SystemInfo");
+
+            LabelManufacturer.Text = LanguageHelper.GetString("LabelManufacturer");
+            LabelMotherboard.Text = LanguageHelper.GetString("LabelMotherboard");
+            LabelModel.Text = LanguageHelper.GetString("LabelModel");
+            LabelCPU.Text = LanguageHelper.GetString("LabelCPU");
+            LabelRAM.Text = LanguageHelper.GetString("LabelRAM");
+            LabelGPU.Text = LanguageHelper.GetString("LabelGPU");
+            LabelDisk.Text = LanguageHelper.GetString("LabelDisk");
+            LabelNIC.Text = LanguageHelper.GetString("LabelNIC");
+            LabelAudio.Text = LanguageHelper.GetString("LabelAudio");
+            LabelMonitor.Text = LanguageHelper.GetString("LabelMonitor");
+
+            LabelName.Text = LanguageHelper.GetString("LabelName");
+            LabelSystem.Text = LanguageHelper.GetString("LabelSystem");
+            LabelInstallTime.Text = LanguageHelper.GetString("LabelInstallTime");
+            LabelUptime.Text = LanguageHelper.GetString("LabelUptime");
         }
 
         private async void DashboardPage_Loaded(object sender, RoutedEventArgs e)
         {
+            Logger.Dev("Dashboard", "Page loaded");
             UpdateWelcomeMessage();
             await LoadSystemInfoWithCacheAsync();
+            StartBootTimer();
+        }
+
+        private void DashboardPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _bootTimer?.Stop();
+            _bootTimer = null;
         }
 
         private void UpdateWelcomeMessage()
         {
-            string username = Environment.UserName;
+            string displayName = GetDisplayName();
             string greeting = GetGreetingByTime();
-            WelcomeText.Text = $"{greeting}，{username}";
+            WelcomeText.Text = $"{greeting}，{displayName}";
+        }
+
+        private string GetDisplayName()
+        {
+            try
+            {
+                using var searcher = new ManagementObjectSearcher(
+                    $"SELECT FullName FROM Win32_UserAccount WHERE Name = '{Environment.UserName}'");
+                foreach (ManagementObject user in searcher.Get())
+                {
+                    string fullName = user["FullName"]?.ToString() ?? "";
+                    // If FullName is empty, it's a local account - use folder name
+                    if (string.IsNullOrWhiteSpace(fullName))
+                        return Environment.UserName;
+                    return fullName;
+                }
+            }
+            catch { }
+            return Environment.UserName;
         }
 
         private string GetGreetingByTime()
         {
             int hour = DateTime.Now.Hour;
-            if (hour >= 5 && hour < 9) return "早晨";
-            if (hour >= 9 && hour < 12) return "上午好";
-            if (hour >= 12 && hour < 14) return "中午好";
-            if (hour >= 14 && hour < 18) return "下午好";
-            if (hour >= 18 && hour < 22) return "晚上好";
-            return "很晚了，早点睡";
+            if (hour >= 5 && hour < 9) return LanguageHelper.GetString("GreetingEarlyMorning");
+            if (hour >= 9 && hour < 12) return LanguageHelper.GetString("GreetingMorning");
+            if (hour >= 12 && hour < 14) return LanguageHelper.GetString("GreetingNoon");
+            if (hour >= 14 && hour < 18) return LanguageHelper.GetString("GreetingAfternoon");
+            if (hour >= 18 && hour < 22) return LanguageHelper.GetString("GreetingEvening");
+            return LanguageHelper.GetString("GreetingLateNight");
+        }
+
+        private void StartBootTimer()
+        {
+            _bootTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _bootTimer.Tick += (s, e) =>
+            {
+                if (_bootTime.HasValue)
+                {
+                    TimeSpan uptime = DateTime.Now - _bootTime.Value;
+                    int days = (int)uptime.TotalDays;
+                    int hours = uptime.Hours;
+                    int minutes = uptime.Minutes;
+                    int seconds = uptime.Seconds;
+                    SystemBootTimeText.Text = days > 0
+                        ? LanguageHelper.GetString("UptimeDaysHours", days, hours, minutes, seconds)
+                        : LanguageHelper.GetString("UptimeHoursMinutes", hours, minutes, seconds);
+                }
+            };
+            _bootTimer.Start();
         }
 
         private async Task LoadSystemInfoWithCacheAsync()
@@ -50,17 +130,19 @@ namespace VTStudioToolBox.Views
             {
                 // 优先从文件缓存加载，实现秒开
                 var fileCached = FileCacheManager.Get<SystemInfo>("SystemInfo");
+                Logger.Dev("Dashboard", $"Cache result: {(fileCached == null ? "null" : $"Manuf={fileCached.Manufacturer}, CPU={fileCached.CPU?.Substring(0, Math.Min(20, fileCached.CPU?.Length ?? 0))}")}");
                 if (fileCached != null)
                 {
+                    Logger.Info("Dashboard", "Loading system info from cache");
                     // 立即显示缓存数据
                     UpdateUIWithSystemInfo(fileCached);
-                    
+
                     // 后台静默刷新数据
                     _ = Task.Run(async () =>
                     {
                         var fresh = await Task.Run(GetSystemInfo);
                         FileCacheManager.Set("SystemInfo", fresh, TimeSpan.FromHours(24));
-                        
+
                         // 如果数据有变化，更新UI
                         DispatcherQueue.TryEnqueue(() =>
                         {
@@ -70,20 +152,23 @@ namespace VTStudioToolBox.Views
                 }
                 else
                 {
+                    Logger.Info("Dashboard", "No cache found, querying system info");
                     // 没有缓存，显示加载中
                     var info = await Task.Run(GetSystemInfo);
                     FileCacheManager.Set("SystemInfo", info, TimeSpan.FromHours(24));
                     UpdateUIWithSystemInfo(info);
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Error("Dashboard", "Failed to load system info", ex);
                 LoadingBorder.Visibility = Visibility.Collapsed;
             }
         }
 
         private void UpdateUIWithSystemInfo(SystemInfo info)
         {
+            Logger.Dev("Dashboard", $"UpdateUI: Manufacturer={info.Manufacturer}, CPU={info.CPU?.Substring(0, Math.Min(20, info.CPU?.Length ?? 0))}...");
             HardwareManufacturerText.Text = info.Manufacturer;
             MotherboardText.Text = info.Motherboard;
             HardwareModelText.Text = info.Model;
@@ -96,8 +181,7 @@ namespace VTStudioToolBox.Views
             DisplayText.Text = info.Display;
 
             SystemComputerNameText.Text = info.ComputerName;
-            SystemInfoText.Text = info.OSInfo;
-            SystemVersionText.Text = info.Version;
+            SystemInfoText.Text = $"{info.OSInfo} {info.Version}";
             SystemInstallTimeText.Text = info.InstallTime;
             SystemBootTimeText.Text = info.BootTime;
 
@@ -130,7 +214,7 @@ namespace VTStudioToolBox.Views
                 Task.WaitAll(tasks.ToArray(), TimeSpan.FromSeconds(10));
 
                 // 显示器信息在后台加载
-                info.Display = "加载中...";
+                info.Display = LanguageHelper.GetString("LoadingDots");
                 _ = Task.Run(() =>
                 {
                     var displayInfo = GetMonitorInfo();
@@ -142,7 +226,8 @@ namespace VTStudioToolBox.Views
             }
             catch (Exception ex)
             {
-                info.OSInfo = $"获取系统信息时出错：{ex.Message}";
+                Logger.Error("Dashboard", "Failed to get system info", ex);
+                info.OSInfo = LanguageHelper.GetString("ErrorSystemInfo", ex.Message);
             }
 
             return info;
@@ -156,12 +241,25 @@ namespace VTStudioToolBox.Views
                 {
                     foreach (ManagementObject os in searcher.Get())
                     {
-                        string caption = os["Caption"]?.ToString() ?? "未知";
-                        string architecture = os["OSArchitecture"]?.ToString() ?? "64位";
+                        string caption = os["Caption"]?.ToString() ?? LanguageHelper.GetString("Unknown");
+                        string architecture = os["OSArchitecture"]?.ToString() ?? LanguageHelper.GetString("Bit64");
                         string buildNumber = os["BuildNumber"]?.ToString() ?? "";
                         string version = os["Version"]?.ToString() ?? "";
                         string installDate = os["InstallDate"]?.ToString() ?? "";
                         string lastBootUpTime = os["LastBootUpTime"]?.ToString() ?? "";
+
+                        // 获取完整版本号（含UBR修订号）
+                        string ubr = "";
+                        try
+                        {
+                            using var ubrKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+                            if (ubrKey != null)
+                            {
+                                ubr = ubrKey.GetValue("UBR")?.ToString() ?? "";
+                            }
+                        }
+                        catch { }
+                        string fullVersion = string.IsNullOrEmpty(ubr) ? version : $"{buildNumber}.{ubr}";
 
                         string cleanCaption = caption.Replace("Microsoft", "").Trim();
 
@@ -171,10 +269,27 @@ namespace VTStudioToolBox.Views
                         info.OSInfo = $"{cleanCaption} {architecture}";
 
                         string displayVersion = GetDisplayVersion(buildNumber);
-                        info.Version = string.IsNullOrEmpty(displayVersion) ? version : $"{displayVersion} {version}";
+                        info.Version = string.IsNullOrEmpty(displayVersion) ? fullVersion : $"{displayVersion} {fullVersion}";
 
                         info.InstallTime = FormatWmiDateTime(installDate);
                         info.BootTime = FormatUptime(lastBootUpTime);
+
+                        // Store parsed boot time for real-time timer
+                        if (!string.IsNullOrEmpty(lastBootUpTime) && lastBootUpTime.Length >= 14)
+                        {
+                            try
+                            {
+                                string datePart = lastBootUpTime.Substring(0, 14);
+                                int y = int.Parse(datePart.Substring(0, 4));
+                                int m = int.Parse(datePart.Substring(4, 2));
+                                int d = int.Parse(datePart.Substring(6, 2));
+                                int h = int.Parse(datePart.Substring(8, 2));
+                                int mi = int.Parse(datePart.Substring(10, 2));
+                                int s = int.Parse(datePart.Substring(12, 2));
+                                _bootTime = new DateTime(y, m, d, h, mi, s);
+                            }
+                            catch { }
+                        }
                         break;
                     }
                 }
@@ -190,8 +305,8 @@ namespace VTStudioToolBox.Views
                 {
                     foreach (ManagementObject cs in searcher.Get())
                     {
-                        info.Manufacturer = cs["Manufacturer"]?.ToString() ?? "未知";
-                        info.Model = cs["Model"]?.ToString() ?? "未知";
+                        info.Manufacturer = cs["Manufacturer"]?.ToString() ?? LanguageHelper.GetString("Unknown");
+                        info.Model = cs["Model"]?.ToString() ?? LanguageHelper.GetString("Unknown");
                         break;
                     }
                 }
@@ -208,7 +323,7 @@ namespace VTStudioToolBox.Views
                     foreach (ManagementObject board in searcher.Get())
                     {
                         string manufacturer = board["Manufacturer"]?.ToString()?.Trim() ?? "";
-                        string product = board["Product"]?.ToString()?.Trim() ?? "未知";
+                        string product = board["Product"]?.ToString()?.Trim() ?? LanguageHelper.GetString("Unknown");
                         info.Motherboard = $"{manufacturer} {product}".Trim();
                         break;
                     }
@@ -225,7 +340,7 @@ namespace VTStudioToolBox.Views
                 {
                     foreach (ManagementObject cpu in searcher.Get())
                     {
-                        string name = CleanCpuName(cpu["Name"]?.ToString() ?? "未知");
+                        string name = CleanCpuName(cpu["Name"]?.ToString() ?? LanguageHelper.GetString("Unknown"));
                         string cores = cpu["NumberOfCores"]?.ToString() ?? "0";
                         string threads = cpu["NumberOfLogicalProcessors"]?.ToString() ?? "0";
                         string maxSpeed = cpu["MaxClockSpeed"]?.ToString() ?? "0";
@@ -233,11 +348,11 @@ namespace VTStudioToolBox.Views
                         if (int.TryParse(maxSpeed, out int mhz) && mhz > 0)
                         {
                             double ghz = mhz / 1000.0;
-                            info.CPU = $"{name} ({cores}核心/{threads}线程 {ghz:F1}GHz)";
+                            info.CPU = $"{name} {LanguageHelper.GetString("CoresThreadsGHz", cores, threads, ghz)}";
                         }
                         else
                         {
-                            info.CPU = $"{name} ({cores}核心/{threads}线程)";
+                            info.CPU = $"{name} {LanguageHelper.GetString("CoresThreads", cores, threads)}";
                         }
                         break;
                     }
@@ -261,8 +376,8 @@ namespace VTStudioToolBox.Views
                         long capacity = Convert.ToInt64(mem["Capacity"] ?? 0);
                         totalBytes += capacity;
 
-                        string brand = mem["Manufacturer"]?.ToString()?.Trim() ?? "未知";
-                        string part = mem["PartNumber"]?.ToString()?.Trim() ?? "未知颗粒";
+                        string brand = mem["Manufacturer"]?.ToString()?.Trim() ?? LanguageHelper.GetString("Unknown");
+                        string part = mem["PartNumber"]?.ToString()?.Trim() ?? LanguageHelper.GetString("UnknownRAMPart");
                         int speed = Convert.ToInt32(mem["Speed"] ?? 0);
 
                         if (!memoryGroups.ContainsKey(brand))
@@ -286,14 +401,14 @@ namespace VTStudioToolBox.Views
 
                 if (totalBytes == 0)
                 {
-                    info.RAM = "未知";
+                    info.RAM = LanguageHelper.GetString("Unknown");
                     return;
                 }
 
                 double totalGB = totalBytes / (1024.0 * 1024.0 * 1024.0);
 
-                string freqDisplay = "未知";
-                string ddrType = "未知";
+                string freqDisplay = LanguageHelper.GetString("Unknown");
+                string ddrType = LanguageHelper.GetString("Unknown");
 
                 if (speedList.Count > 0)
                 {
@@ -304,13 +419,13 @@ namespace VTStudioToolBox.Views
                     freqDisplay = $"{mostCommonSpeed}MHz";
                     if (speedList.Distinct().Count() > 1)
                     {
-                        freqDisplay += " (混频)";
+                        freqDisplay += LanguageHelper.GetString("MixedFrequency");
                     }
 
                     if (mostCommonSpeed >= 4800) ddrType = "DDR5";
                     else if (mostCommonSpeed >= 2133) ddrType = "DDR4";
                     else if (mostCommonSpeed >= 800) ddrType = "DDR3";
-                    else if (mostCommonSpeed > 0) ddrType = "DDR2/早";
+                    else if (mostCommonSpeed > 0) ddrType = LanguageHelper.GetString("DDROld");
                 }
 
                 var ramDisplay = new List<string>();
@@ -338,109 +453,10 @@ namespace VTStudioToolBox.Views
             catch { }
         }
 
-        private long GetVRAMFromRegistry(string gpuName)
-        {
-            try
-            {
-                string lowerName = gpuName.ToLower();
-
-                long vram = 0;
-
-                if (lowerName.Contains("nvidia"))
-                {
-                    vram = GetNvidiaVRAM();
-                }
-                else if (lowerName.Contains("amd") || lowerName.Contains("radeon"))
-                {
-                    vram = GetAMDVRAM();
-                }
-
-                if (vram > 0 && IsValidVRAMValue(vram))
-                {
-                    return vram;
-                }
-            }
-            catch { }
-
-            return 0;
-        }
-
         private bool IsValidVRAMValue(long vramBytes)
         {
             double gb = vramBytes / (1024.0 * 1024.0 * 1024.0);
             return gb >= 1.0 && gb <= 24.0;
-        }
-
-        private long GetNvidiaVRAM()
-        {
-            try
-            {
-                using (var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"))
-                {
-                    if (key == null) return 0;
-
-                    foreach (string subKeyName in key.GetSubKeyNames())
-                    {
-                        using (var subKey = key.OpenSubKey(subKeyName))
-                        {
-                            if (subKey == null) continue;
-
-                            object vramObj = subKey.GetValue("HardwareInformation.MemorySize");
-                            if (vramObj != null)
-                            {
-                                string vramStr = vramObj.ToString();
-                                if (long.TryParse(vramStr, System.Globalization.NumberStyles.HexNumber, null, out long vram))
-                                {
-                                    return vram;
-                                }
-                                if (long.TryParse(vramStr, out long vram2))
-                                {
-                                    return vram2;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch { }
-
-            return 0;
-        }
-
-        private long GetAMDVRAM()
-        {
-            try
-            {
-                using (var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"))
-                {
-                    if (key == null) return 0;
-
-                    foreach (string subKeyName in key.GetSubKeyNames())
-                    {
-                        using (var subKey = key.OpenSubKey(subKeyName))
-                        {
-                            if (subKey == null) continue;
-
-                            object vramObj = subKey.GetValue("HardwareInformation.MemorySize");
-                            if (vramObj != null)
-                            {
-                                string vramStr = vramObj.ToString();
-                                if (long.TryParse(vramStr, System.Globalization.NumberStyles.HexNumber, null, out long vram))
-                                {
-                                    return vram;
-                                }
-                                if (long.TryParse(vramStr, out long vram2))
-                                {
-                                    return vram2;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch { }
-
-            return 0;
         }
 
         private Dictionary<string, long> GetDirectXVRAM()
@@ -521,7 +537,7 @@ namespace VTStudioToolBox.Views
                 {
                     foreach (ManagementObject gpu in searcher.Get())
                     {
-                        string name = gpu["Name"]?.ToString()?.Trim() ?? "未知";
+                        string name = gpu["Name"]?.ToString()?.Trim() ?? LanguageHelper.GetString("Unknown");
 
                         long vramBytes = Convert.ToInt64(gpu["AdapterRAM"] ?? 0);
 
@@ -541,7 +557,7 @@ namespace VTStudioToolBox.Views
                             }
                         }
 
-                        string vramStr = "未知";
+                        string vramStr = LanguageHelper.GetString("Unknown");
                         if (vramBytes > 0)
                         {
                             double gb = vramBytes / (1024.0 * 1024.0 * 1024.0);
@@ -575,17 +591,17 @@ namespace VTStudioToolBox.Views
                         }
 
                         string displayName = name;
-                        if (vramStr != "未知") displayName += $" ({vramStr})";
+                        if (vramStr != LanguageHelper.GetString("Unknown")) displayName += $" ({vramStr})";
 
                         if (!string.IsNullOrEmpty(gpuDriver))
                         {
-                            displayName += $"\n驱动: {gpuDriver}";
+                            displayName += $"\n{LanguageHelper.GetString("DriverLabel", gpuDriver)}";
                             if (!string.IsNullOrEmpty(gpuDriverDate))
                                 displayName += $" ({gpuDriverDate})";
                         }
                         else
                         {
-                            displayName += "\n驱动: 未检测到";
+                            displayName += $"\n{LanguageHelper.GetString("DriverNotDetected")}";
                         }
 
                         if (!name.Contains("Virtual", StringComparison.OrdinalIgnoreCase) &&
@@ -616,7 +632,7 @@ namespace VTStudioToolBox.Views
 
                         if (string.IsNullOrEmpty(model) || sizeBytes < 1024L * 1024 * 1024 * 10) continue;
 
-                        string sizeStr = "未知";
+                        string sizeStr = LanguageHelper.GetString("Unknown");
                         if (sizeBytes > 0)
                         {
                             double tb = sizeBytes / (1024.0 * 1024.0 * 1024.0 * 1024.0);
@@ -731,7 +747,7 @@ namespace VTStudioToolBox.Views
 
         private string CleanCpuName(string cpuName)
         {
-            if (string.IsNullOrEmpty(cpuName)) return "未知";
+            if (string.IsNullOrEmpty(cpuName)) return LanguageHelper.GetString("Unknown");
             int atIndex = cpuName.IndexOf('@');
             if (atIndex > 0) return cpuName.Substring(0, atIndex).Trim();
             return cpuName.Trim();
@@ -741,7 +757,7 @@ namespace VTStudioToolBox.Views
         {
             try
             {
-                if (string.IsNullOrEmpty(wmiDateTime)) return "未知";
+                if (string.IsNullOrEmpty(wmiDateTime)) return LanguageHelper.GetString("Unknown");
                 if (wmiDateTime.Length >= 14)
                 {
                     string datePart = wmiDateTime.Substring(0, 14);
@@ -753,7 +769,7 @@ namespace VTStudioToolBox.Views
                     int second = int.Parse(datePart.Substring(12, 2));
 
                     DateTime dt = new DateTime(year, month, day, hour, minute, second);
-                    return $"{dt:yyyy年MM月dd日 HH:mm:ss}";
+                    return LanguageHelper.GetString("DateFormat", dt);
                 }
             }
             catch { }
@@ -764,7 +780,7 @@ namespace VTStudioToolBox.Views
         {
             try
             {
-                if (string.IsNullOrEmpty(wmiDateTime)) return "未知";
+                if (string.IsNullOrEmpty(wmiDateTime)) return LanguageHelper.GetString("Unknown");
                 if (wmiDateTime.Length >= 14)
                 {
                     string datePart = wmiDateTime.Substring(0, 14);
@@ -783,7 +799,7 @@ namespace VTStudioToolBox.Views
                     int minutes = uptime.Minutes;
                     int seconds = uptime.Seconds;
 
-                    return days > 0 ? $"{days}天{hours}小时{minutes}分钟{seconds}秒" : $"{hours}小时{minutes}分钟{seconds}秒";
+                    return days > 0 ? LanguageHelper.GetString("UptimeDaysHours", days, hours, minutes, seconds) : LanguageHelper.GetString("UptimeHoursMinutes", hours, minutes, seconds);
                 }
             }
             catch { }
@@ -841,7 +857,7 @@ namespace VTStudioToolBox.Views
 
         private string FormatVerticalList(List<string> items)
         {
-            if (items == null || items.Count == 0) return "未知";
+            if (items == null || items.Count == 0) return LanguageHelper.GetString("Unknown");
             if (items.Count == 1) return items[0];
             return string.Join("\n", items);
         }
@@ -854,6 +870,7 @@ namespace VTStudioToolBox.Views
 
             return build switch
             {
+                >= 28000 => "26H1",
                 >= 26000 => "25H2",
                 >= 25300 => "25H1",
                 >= 22621 => "23H2",
@@ -877,25 +894,6 @@ namespace VTStudioToolBox.Views
                 _ => ""
             };
         }
-
-        private class SystemInfo
-        {
-            public string Manufacturer { get; set; } = "";
-            public string Motherboard { get; set; } = "";
-            public string Model { get; set; } = "";
-            public string CPU { get; set; } = "";
-            public string RAM { get; set; } = "";
-            public string GPU { get; set; } = "";
-            public string HDD { get; set; } = "";
-            public string Network { get; set; } = "";
-            public string Audio { get; set; } = "";
-            public string Display { get; set; } = "";
-
-            public string ComputerName { get; set; } = "";
-            public string OSInfo { get; set; } = "";
-            public string Version { get; set; } = "";
-            public string InstallTime { get; set; } = "";
-            public string BootTime { get; set; } = "";
-        }
     }
 }
+

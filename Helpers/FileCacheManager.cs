@@ -76,7 +76,12 @@ namespace VTStudioToolBox.Helpers
             try
             {
                 string filePath = GetCacheFilePath(key);
-                return File.Exists(filePath);
+                if (!File.Exists(filePath))
+                    return false;
+
+                string json = File.ReadAllText(filePath);
+                var cacheItem = JsonSerializer.Deserialize<CacheItem<JsonElement>>(json, JsonOptions);
+                return cacheItem != null && DateTime.Now <= cacheItem.ExpirationTime;
             }
             catch
             {

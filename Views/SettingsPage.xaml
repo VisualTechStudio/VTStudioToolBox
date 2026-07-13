@@ -13,234 +13,198 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,24">
-                <TextBlock Text="设置"
-                           FontSize="28"
-                           FontWeight="Bold"
-                           Foreground="White"/>
-                <TextBlock Text="在这里调整工具箱的设置和查看信息"
-                           FontSize="16"
-                           Foreground="#CCCCCC"
-                           Margin="0,8,0,0"/>
+                <TextBlock x:Name="PageTitle" Style="{StaticResource PageTitleStyle}"/>
+                <TextBlock x:Name="PageSubtitle" Style="{StaticResource PageSubtitleStyle}"/>
             </StackPanel>
 
             <Grid Grid.Row="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" 
-                        Margin="0,0,0,16"
-                        Background="#2D2D2D"
-                        CornerRadius="12"
-                        Padding="20">
+                <!-- 语言设置 -->
+                <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}">
                     <StackPanel>
-                        <TextBlock Text="关于"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Foreground="White"
-                                   Margin="0,0,0,16"/>
+                        <TextBlock x:Name="LanguageHeader" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+                        <ComboBox x:Name="LanguageComboBox"
+                                  MinWidth="140"
+                                  VerticalAlignment="Center"
+                                  SelectionChanged="LanguageComboBox_SelectionChanged"/>
+                    </StackPanel>
+                </Border>
 
-                        <StackPanel Spacing="8" Margin="0,0,0,16">
-                            <TextBlock Text="VTStudio ToolBox"
-                                       FontSize="14"
-                                       Foreground="White"/>
+                <!-- 日志设置 -->
+                <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock x:Name="LogHeader" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,16"/>
 
-                            <TextBlock x:Name="VersionTextBlock"
-                                       FontSize="12"
-                                       Foreground="#CCCCCC"/>
-
-                            <TextBlock FontSize="12" Foreground="#CCCCCC">
-                                <Run Text="© Copyright 2016-2026 "/>
-                                <Hyperlink NavigateUri="https://vtstudio.space"
-                                           Foreground="#4DA6FF">
-                                   VisualTechStudio
-                                </Hyperlink>
-                                <Run Text=". "/>
-                                <Run Text="在使用本软件前，您已阅读并同意"/>
-                                <Hyperlink NavigateUri="https://toolboxeula.vtstudio.space"
-                                           Foreground="#4DA6FF">
-                                   用户协议
-                                </Hyperlink>
-                                <Run Text="."/>
-                            </TextBlock>
-
-                            <TextBlock Text="我们相信代码应该自由流动，本程序以 GNU GPLv3 开源代码发布，使用它、修改它、分享它，但请尊重同样的自由"
-                                       FontSize="12"
-                                       Foreground="#CCCCCC"
-                                       TextWrapping="Wrap"/>
-                        </StackPanel>
-
-                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,0,0,0">
-
-                            <Button x:Name="WebsiteButton"
-                                    Click=" WebsiteButton_Click"
-                                    FontSize="12"
-                                    BorderThickness="1"
-                                    Padding="12,6"
-                                    Margin="0,0,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <TextBlock x:Name="LogLevelLabel" FontSize="12"
+                                       Foreground="{StaticResource SecondaryTextBrush}"
+                                       VerticalAlignment="Center"/>
+                            <ComboBox x:Name="LogLevelComboBox"
+                                      Width="120"
+                                      VerticalAlignment="Center"
+                                      SelectionChanged="LogLevelComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Dev" Tag="0"/>
+                                <ComboBoxItem Content="Info" Tag="1" IsSelected="True"/>
+                                <ComboBoxItem Content="Warn" Tag="2"/>
+                                <ComboBoxItem Content="Error" Tag="3"/>
+                            </ComboBox>
+                            <Button x:Name="FeedbackButton"
+                                    Click="FeedbackButton_Click"
+                                    FontSize="12" BorderThickness="1" Padding="12,6">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE71B;" FontSize="12"/>
-                                    <TextBlock Text="VTStudio官方网站"/>
+                                    <FontIcon Glyph="&#xE946;" FontSize="12"/>
+                                    <TextBlock x:Name="FeedbackButtonText"/>
                                 </StackPanel>
                             </Button>
-
-                            <Button x:Name="GitHubButton"
-                                    Click="GitHubButton_Click"
-                                    FontSize="12"
-                                    BorderThickness="1"
-                                    Padding="12,6"
-                                    Margin="0,0,0,0">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE734;" FontSize="12"/>
-                                    <TextBlock Text="前往Github给本项目一个Star"/>
-                                </StackPanel>
-                            </Button>
-
-                            <Button x:Name="GPLV3Button"
-                                    Click="GPLV3Button_Click"
-                                    FontSize="12"
-                                    BorderThickness="1"
-                                    Padding="12,6"
-                                    Margin="0,0,0,0">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE70B;" FontSize="12"/>
-                                    <TextBlock Text="了解GNU GPLv3开源协议"/>
-                                </StackPanel>
-                            </Button>
-
-                            <Button x:Name="RevokeEulaButton"
-                                    Content="撤销同意用户协议"
-                                    Click="RevokeEulaButton_Click"
-                                    FontSize="12"
-                                    Foreground="#FF6B6B"
-                                    Background="Transparent"
-                                    BorderBrush="#FF6B6B"
-                                    BorderThickness="1"
-                                    Padding="12,6"
-                                    Margin="0,0,0,0"/>
-                        </StackPanel>
-
-                        <Border Height="1" Background="#444444" Margin="0,16,0,12"/>
-
-                        <TextBlock Text="参与开发的贡献者"
-                                   FontSize="16"
-                                   FontWeight="SemiBold"
-                                   Foreground="White"
-                                   Margin="0,0,0,12"/>
-
-                        <StackPanel Spacing="20">
-
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Ellipse Width="64" Height="64" Grid.Column="0">
-                                    <Ellipse.Fill>
-                                        <ImageBrush ImageSource="/Assets/dwg.png"
-                                                    Stretch="UniformToFill"/>
-                                    </Ellipse.Fill>
-                                    <Ellipse.Stroke>
-                                        <SolidColorBrush Color="White" Opacity="0.3"/>
-                                    </Ellipse.Stroke>
-                                    <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
-                                </Ellipse>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                                    <TextBlock Text="KL_Xydwg01"
-                                               FontSize="15"
-                                               FontWeight="SemiBold"
-                                               Foreground="White"/>
-
-                                    <TextBlock Text="初始框架构建、功能实现、UI设计、测试"
-                                               FontSize="12"
-                                               Foreground="#BBBBBB"
-                                               TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Ellipse Width="64" Height="64" Grid.Column="0">
-                                    <Ellipse.Fill>
-                                        <ImageBrush ImageSource="/Assets/xcy.png"
-                                                    Stretch="UniformToFill"/>
-                                    </Ellipse.Fill>
-                                    <Ellipse.Stroke>
-                                        <SolidColorBrush Color="White" Opacity="0.3"/>
-                                    </Ellipse.Stroke>
-                                    <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
-                                </Ellipse>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                                    <TextBlock Text="Shayne Hui"
-                                               FontSize="15"
-                                               FontWeight="SemiBold"
-                                               Foreground="White"/>
-
-                                    <TextBlock Text="实用工具模块开发、性能优化、用户体验改进、功能提出、测试"
-                                               FontSize="12"
-                                               Foreground="#BBBBBB"
-                                               TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Ellipse Width="64" Height="64" Grid.Column="0">
-                                    <Ellipse.Fill>
-                                        <ImageBrush ImageSource="/Assets/kpdw.png"
-                                                    Stretch="UniformToFill"/>
-                                    </Ellipse.Fill>
-                                    <Ellipse.Stroke>
-                                        <SolidColorBrush Color="White" Opacity="0.3"/>
-                                    </Ellipse.Stroke>
-                                    <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
-                                </Ellipse>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                                    <TextBlock Text="月"
-                                               FontSize="15"
-                                               FontWeight="SemiBold"
-                                               Foreground="White"/>
-
-                                    <TextBlock Text="测试"
-                                               FontSize="12"
-                                               Foreground="#BBBBBB"
-                                               TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Grid>
-
-
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Row="1" 
-                        Background="#2D2D2D"
-                        CornerRadius="12"
-                        Padding="20">
+                <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}">
                     <StackPanel>
-                        <TextBlock Text="更新日志"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Foreground="White"
-                                   Margin="0,0,0,12"/>
+                        <TextBlock x:Name="AboutHeader" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,16"/>
 
+                        <StackPanel Spacing="8" Margin="0,0,0,16">
+                            <TextBlock Text="VTStudio ToolBox" FontSize="14"
+                                       Foreground="{StaticResource PrimaryTextBrush}"/>
+                            <TextBlock x:Name="VersionTextBlock" FontSize="12"
+                                       Foreground="{StaticResource SecondaryTextBrush}"/>
+                            <TextBlock x:Name="CopyrightText"
+                                       FontSize="12" Foreground="{StaticResource SecondaryTextBrush}"/>
+                            <TextBlock x:Name="GPLStatement"
+                                       FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button x:Name="WebsiteButton" Click="WebsiteButton_Click"
+                                    FontSize="12" BorderThickness="1" Padding="12,6">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE71B;" FontSize="12"/>
+                                    <TextBlock x:Name="WebsiteButtonText"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="GitHubButton" Click="GitHubButton_Click"
+                                    FontSize="12" BorderThickness="1" Padding="12,6">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE734;" FontSize="12"/>
+                                    <TextBlock x:Name="GitHubButtonText"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="GPLV3Button" Click="GPLV3Button_Click"
+                                    FontSize="12" BorderThickness="1" Padding="12,6">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE70B;" FontSize="12"/>
+                                    <TextBlock x:Name="GPLButtonText"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="RevokeEulaButton" Content="撤销同意用户协议"
+                                    Click="RevokeEulaButton_Click" FontSize="12"
+                                    Foreground="{StaticResource DangerRedBrush}"
+                                    Background="Transparent"
+                                    BorderBrush="{StaticResource DangerRedBrush}"
+                                    BorderThickness="1" Padding="12,6"/>
+                        </StackPanel>
+
+                        <Border Height="1" Background="{StaticResource DividerBrush}" Margin="0,16,0,12"/>
+
+                        <TextBlock x:Name="ContributorsHeader" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+
+                        <StackPanel Spacing="20">
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Ellipse Width="64" Height="64" Grid.Column="0">
+                                    <Ellipse.Fill>
+                                        <ImageBrush ImageSource="/Assets/dwg.png" Stretch="UniformToFill"/>
+                                    </Ellipse.Fill>
+                                    <Ellipse.Stroke>
+                                        <SolidColorBrush Color="White" Opacity="0.3"/>
+                                    </Ellipse.Stroke>
+                                    <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
+                                </Ellipse>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                    <TextBlock Text="KL_Xydwg01" FontSize="15" FontWeight="SemiBold"
+                                               Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    <TextBlock x:Name="ContributorRole_Dwg"
+                                               FontSize="12" Foreground="{StaticResource TertiaryTextBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Ellipse Width="64" Height="64" Grid.Column="0">
+                                    <Ellipse.Fill>
+                                        <ImageBrush ImageSource="/Assets/xcy.png" Stretch="UniformToFill"/>
+                                    </Ellipse.Fill>
+                                    <Ellipse.Stroke>
+                                        <SolidColorBrush Color="White" Opacity="0.3"/>
+                                    </Ellipse.Stroke>
+                                    <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
+                                </Ellipse>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                    <TextBlock Text="Shayne Hui" FontSize="15" FontWeight="SemiBold"
+                                               Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    <TextBlock x:Name="ContributorRole_Xcy"
+                                               FontSize="12" Foreground="{StaticResource TertiaryTextBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Ellipse Width="64" Height="64" Grid.Column="0">
+                                    <Ellipse.Fill>
+                                        <ImageBrush ImageSource="/Assets/kpdw.png" Stretch="UniformToFill"/>
+                                    </Ellipse.Fill>
+                                    <Ellipse.Stroke>
+                                        <SolidColorBrush Color="White" Opacity="0.3"/>
+                                    </Ellipse.Stroke>
+                                    <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
+                                </Ellipse>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                    <TextBlock Text="月" FontSize="15" FontWeight="SemiBold"
+                                               Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    <TextBlock x:Name="ContributorRole_Yue"
+                                               FontSize="12" Foreground="{StaticResource TertiaryTextBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <Border Height="1" Background="{StaticResource DividerBrush}" Margin="0,16,0,12"/>
+
+                        <TextBlock x:Name="ContributionsHeader" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+                        <TextBlock x:Name="ContributionsIntro"
+                                   FontSize="12" Foreground="{StaticResource FaintTextBrush}"
+                                   Margin="0,0,0,12" TextWrapping="Wrap"/>
+                        <StackPanel x:Name="ContributionsStack" Spacing="8"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="3" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock x:Name="ChangelogHeader" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
                         <StackPanel Spacing="8">
-                            <TextBlock x:Name="LogTextBlock"
-                                       FontSize="12"
-                                       Foreground="#CCCCCC"/>
+                            <TextBlock x:Name="LogTextBlock" FontSize="12"
+                                       Foreground="{StaticResource SecondaryTextBrush}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>

@@ -7,7 +7,7 @@
 
     <Grid x:Name="RootGrid" Background="Transparent">
 
-        <Grid x:Name="EulaOverlay" 
+        <Grid x:Name="EulaOverlay"
               Background="#CC1F1F1F"
               Visibility="Collapsed"
               Canvas.ZIndex="100">
@@ -20,23 +20,18 @@
                 <TextBlock Text="VTStudio ToolBox"
                            FontSize="56"
                            FontWeight="SemiBold"
-                           Foreground="White"
+                           Foreground="{StaticResource PrimaryTextBrush}"
                            HorizontalAlignment="Center"
                            TextAlignment="Center"/>
 
-                <TextBlock FontSize="20"
-                           Foreground="#DDDDDD"
+                <TextBlock x:Name="EulaText"
+                           FontSize="20"
+                           Foreground="{StaticResource TertiaryTextBrush}"
                            HorizontalAlignment="Center"
                            TextWrapping="Wrap"
-                           TextAlignment="Center">
-                    在使用开始本产品前，请仔细阅读我们的
-                    <Hyperlink NavigateUri="https://toolboxeula.vtstudio.space">
-                        用户协议
-                    </Hyperlink>
-                </TextBlock>
+                           TextAlignment="Center"/>
 
                 <Button x:Name="BtnAgree"
-                        Content="我已阅读并同意，开始使用"
                         Click="BtnAgree_Click"
                         Width="210"
                         Height="40"
@@ -47,7 +42,7 @@
             </StackPanel>
         </Grid>
 
-        <Grid Background="#1F1F1F"/>
+        <Grid Background="{StaticResource WindowBackgroundBrush}"/>
 
         <muxc:NavigationView x:Name="NavView"
                              PaneDisplayMode="Left"
@@ -61,17 +56,29 @@
                              Visibility="Collapsed">
 
             <muxc:NavigationView.MenuItems>
-                <muxc:NavigationViewItem Content="仪表盘" 
+                <muxc:NavigationViewItem x:Name="NavDashboard"
                                          Tag="dashboard"
                                          IsSelected="True">
                     <muxc:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE70A;"/>
                     </muxc:NavigationViewItem.Icon>
                 </muxc:NavigationViewItem>
-                <muxc:NavigationViewItem Content="实用工具" 
+                <muxc:NavigationViewItem x:Name="NavUtilities"
                                          Tag="utilities">
                     <muxc:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE90F;" />
+                    </muxc:NavigationViewItem.Icon>
+                </muxc:NavigationViewItem>
+                <muxc:NavigationViewItem x:Name="NavNetwork"
+                                         Tag="network">
+                    <muxc:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE968;"/>
+                    </muxc:NavigationViewItem.Icon>
+                </muxc:NavigationViewItem>
+                <muxc:NavigationViewItem x:Name="NavHackintosh"
+                                         Tag="macos">
+                    <muxc:NavigationViewItem.Icon>
+                        <ImageIcon Source="Assets/hackintosh.svg"/>
                     </muxc:NavigationViewItem.Icon>
                 </muxc:NavigationViewItem>
             </muxc:NavigationView.MenuItems>

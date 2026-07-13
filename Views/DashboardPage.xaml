@@ -16,64 +16,30 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,24">
-                <TextBlock Text="仪表盘"
-                           FontSize="28"
-                           FontWeight="Bold"
-                           Foreground="White"/>
-                <TextBlock Text="逸一时误一世，逸久逸久罢已龄。"
-                           FontSize="16"
-                           Foreground="#CCCCCC"
-                           Margin="0,8,0,0"/>
+                <TextBlock x:Name="PageTitle" Style="{StaticResource PageTitleStyle}"/>
+                <TextBlock x:Name="PageSubtitle" Style="{StaticResource PageSubtitleStyle}"/>
             </StackPanel>
 
-            <Border Grid.Row="1" 
-                    Background="#2D2D2D"
-                    CornerRadius="12"
-                    Padding="20"
-                    Margin="0,0,0,16">
-                <TextBlock x:Name="WelcomeText"
-                           Text=""
-                           FontSize="18"
-                           FontWeight="SemiBold"
-                           Foreground="White"/>
+            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}">
+                <TextBlock x:Name="WelcomeText" Text=""
+                           FontSize="18" FontWeight="SemiBold"
+                           Foreground="{StaticResource PrimaryTextBrush}"/>
             </Border>
 
-            <Border x:Name="LoadingBorder"
-                    Grid.Row="2"
-                    Background="#2D2D2D"
-                    CornerRadius="12"
-                    Padding="20"
-                    Margin="0,0,0,16"
-                    HorizontalAlignment="Stretch">
-                <StackPanel Orientation="Horizontal"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center">
-                    <muxc:ProgressRing IsActive="True"
-                                       Width="20"
-                                       Height="20"
-                                       Margin="0,0,16,0"/>
-                    <TextBlock Text="正在加载硬件与系统信息..."
-                               FontSize="18"
-                               FontWeight="SemiBold"
-                               Foreground="White"
+            <Border x:Name="LoadingBorder" Grid.Row="2" Style="{StaticResource CardBorderStyle}">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <muxc:ProgressRing IsActive="True" Width="20" Height="20" Margin="0,0,16,0"/>
+                    <TextBlock x:Name="LoadingText"
+                               FontSize="18" FontWeight="SemiBold"
+                               Foreground="{StaticResource PrimaryTextBrush}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
             </Border>
 
-            <Border x:Name="HardwareInfoBorder"
-                    Grid.Row="3"
-                    Background="#2D2D2D"
-                    CornerRadius="12"
-                    Padding="20"
-                    Margin="0,0,0,16"
-                    Visibility="Collapsed">
+            <Border x:Name="HardwareInfoBorder" Grid.Row="3" Style="{StaticResource CardBorderStyle}" Visibility="Collapsed">
                 <StackPanel>
-                    <TextBlock Text="硬件信息"
-                               FontSize="18"
-                               FontWeight="SemiBold"
-                               Foreground="White"
-                               Margin="0,0,0,12"/>
-
+                    <TextBlock x:Name="HardwareInfoHeader" FontSize="18" FontWeight="SemiBold"
+                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -92,52 +58,43 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="制造商：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="HardwareManufacturerText" Grid.Row="0" Grid.Column="1" FontSize="14" Foreground="White" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="LabelManufacturer" Grid.Row="0" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="HardwareManufacturerText" Grid.Row="0" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="主板：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="MotherboardText" Grid.Row="1" Grid.Column="1" FontSize="14" Foreground="White" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="LabelMotherboard" Grid.Row="1" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="MotherboardText" Grid.Row="1" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="型号：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="HardwareModelText" Grid.Row="2" Grid.Column="1" FontSize="14" Foreground="White" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="LabelModel" Grid.Row="2" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="HardwareModelText" Grid.Row="2" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="CPU：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="HardwareCPUText" Grid.Row="3" Grid.Column="1" FontSize="14" Foreground="White" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="LabelCPU" Grid.Row="3" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="HardwareCPUText" Grid.Row="3" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
 
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="内存：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="RAMText" Grid.Row="4" Grid.Column="1" FontSize="14" Foreground="White" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="LabelRAM" Grid.Row="4" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="RAMText" Grid.Row="4" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
 
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="GPU：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="HardwareGPUText" Grid.Row="5" Grid.Column="1" FontSize="14" Foreground="White" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="LabelGPU" Grid.Row="5" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="HardwareGPUText" Grid.Row="5" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
 
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="硬盘：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="HDDText" Grid.Row="6" Grid.Column="1" FontSize="14" Foreground="White" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="LabelDisk" Grid.Row="6" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="HDDText" Grid.Row="6" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
 
-                        <TextBlock Grid.Row="7" Grid.Column="0" Text="网卡：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="NetworkText" Grid.Row="7" Grid.Column="1" FontSize="14" Foreground="White" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="LabelNIC" Grid.Row="7" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="NetworkText" Grid.Row="7" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
 
-                        <TextBlock Grid.Row="8" Grid.Column="0" Text="声卡：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="AudioText" Grid.Row="8" Grid.Column="1" FontSize="14" Foreground="White" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="LabelAudio" Grid.Row="8" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="AudioText" Grid.Row="8" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
 
-                        <TextBlock Grid.Row="9" Grid.Column="0" Text="显示器：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,0"/>
-                        <TextBlock x:Name="DisplayText" Grid.Row="9" Grid.Column="1" FontSize="14" Foreground="White"/>
+                        <TextBlock x:Name="LabelMonitor" Grid.Row="9" Grid.Column="0" Style="{StaticResource InfoLabelStyle}" Margin="0,0,12,0"/>
+                        <TextBlock x:Name="DisplayText" Grid.Row="9" Grid.Column="1" Style="{StaticResource InfoValueStyle}" Margin="0,0,0,0"/>
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <Border x:Name="SystemInfoBorder"
-                    Grid.Row="4"
-                    Background="#2D2D2D"
-                    CornerRadius="12"
-                    Padding="20"
-                    Visibility="Collapsed">
+            <Border x:Name="SystemInfoBorder" Grid.Row="4" Style="{StaticResource CardBorderStyle}" Visibility="Collapsed">
                 <StackPanel>
-                    <TextBlock Text="系统信息"
-                               FontSize="18"
-                               FontWeight="SemiBold"
-                               Foreground="White"
-                               Margin="0,0,0,12"/>
-
+                    <TextBlock x:Name="SystemInfoHeader" FontSize="18" FontWeight="SemiBold"
+                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -148,23 +105,19 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="名称：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="SystemComputerNameText" Grid.Row="0" Grid.Column="1" FontSize="14" Foreground="White" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="LabelName" Grid.Row="0" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="SystemComputerNameText" Grid.Row="0" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="系统：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="SystemInfoText" Grid.Row="1" Grid.Column="1" FontSize="14" Foreground="White" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="LabelSystem" Grid.Row="1" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="SystemInfoText" Grid.Row="1" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="版本：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="SystemVersionText" Grid.Row="2" Grid.Column="1" FontSize="14" Foreground="White" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="LabelInstallTime" Grid.Row="2" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="SystemInstallTimeText" Grid.Row="2" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="安装时间：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,8"/>
-                        <TextBlock x:Name="SystemInstallTimeText" Grid.Row="3" Grid.Column="1" FontSize="14" Foreground="White" Margin="0,0,0,8"/>
-
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="已开机：" FontSize="14" Foreground="#CCCCCC" Margin="0,0,12,0"/>
-                        <TextBlock x:Name="SystemBootTimeText" Grid.Row="4" Grid.Column="1" FontSize="14" Foreground="White"/>
+                        <TextBlock x:Name="LabelUptime" Grid.Row="3" Grid.Column="0" Style="{StaticResource InfoLabelStyle}" Margin="0,0,12,0"/>
+                        <TextBlock x:Name="SystemBootTimeText" Grid.Row="3" Grid.Column="1" Style="{StaticResource InfoValueStyle}" Margin="0,0,0,0"/>
                     </Grid>
                 </StackPanel>
             </Border>

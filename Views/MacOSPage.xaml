@@ -1,0 +1,120 @@
+<Page
+    x:Class="VTStudioToolBox.Views.MacOSPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:VTStudioToolBox.Views"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    Background="Transparent">
+
+    <ScrollViewer>
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                <TextBlock x:Name="PageTitle" Style="{StaticResource PageTitleStyle}"/>
+                <TextBlock x:Name="PageSubtitle" Style="{StaticResource PageSubtitleStyle}"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,0,0,24">
+                <Button x:Name="BtnToggleLatest"
+                        Click="BtnToggleLatest_Click"
+                        FontSize="12" BorderThickness="1" Padding="12,6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE8EF;" FontSize="12"/>
+                        <TextBlock x:Name="BtnToggleLatestText"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="BtnRefresh"
+                        Click="BtnRefresh_Click"
+                        FontSize="12" BorderThickness="1" Padding="12,6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE72C;" FontSize="12"/>
+                        <TextBlock x:Name="BtnRefreshText"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="BtnFlashDmg"
+                        Click="BtnFlashDmg_Click"
+                        FontSize="12" BorderThickness="1" Padding="12,6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE71B;" FontSize="12"/>
+                        <TextBlock x:Name="BtnFlashDmgText"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <TextBlock x:Name="TxtStatus"
+                       Grid.Row="2"
+                       FontSize="14" Foreground="{StaticResource FaintTextBrush}" Margin="0,0,0,16"/>
+
+            <muxc:ListView x:Name="DmgListView"
+                           Grid.Row="2"
+                           Margin="0,36,0,0"
+                           SelectionMode="Single">
+                <muxc:ListView.ItemContainerStyle>
+                    <Style TargetType="muxc:ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="0,0,0,8"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="muxc:ListViewItem">
+                                    <Border Background="{TemplateBinding Background}"
+                                            CornerRadius="12"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </muxc:ListView.ItemContainerStyle>
+                <muxc:ListView.ItemTemplate>
+                    <DataTemplate x:DataType="local:DmgItem">
+                        <Border Background="{StaticResource CardBackgroundBrush}"
+                                CornerRadius="12" Padding="16" Margin="0,0,0,4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="16" FontWeight="SemiBold"
+                                               Foreground="{StaticResource PrimaryTextBrush}">
+                                        <Run Text="{x:Bind Title}"/>
+                                        <Run Text=" " Foreground="{StaticResource DimTextBrush}"/>
+                                        <Run Text="{x:Bind Version}" FontWeight="Normal"
+                                             Foreground="{StaticResource MutedTextBrush}"/>
+                                    </TextBlock>
+                                    <TextBlock FontSize="13" Foreground="{StaticResource MutedTextBrush}" Margin="0,4,0,0">
+                                        <Run Text="{x:Bind Version}"/>
+                                        <Run Text=" | "/>
+                                        <Run Text="{x:Bind Build}"/>
+                                        <Run Text=" | "/>
+                                        <Run Text="{x:Bind Size}"/>
+                                    </TextBlock>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           Text="{x:Bind Date}" FontSize="13"
+                                           Foreground="{StaticResource DimTextBrush}"
+                                           VerticalAlignment="Center" Margin="12,0"/>
+                                <Button x:Name="BtnDownload" Grid.Column="2"
+                                        Tag="{x:Bind}" Click="BtnDownloadDmg_Click"
+                                        VerticalAlignment="Center" Margin="8,0"/>
+                                <Button x:Name="BtnCopyLink" Grid.Column="3"
+                                        Tag="{x:Bind}" Click="BtnCopyLink_Click"
+                                        VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </muxc:ListView.ItemTemplate>
+            </muxc:ListView>
+        </Grid>
+    </ScrollViewer>
+</Page>

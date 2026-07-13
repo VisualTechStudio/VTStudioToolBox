@@ -1,93 +1,158 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Drawing;
 using System.Drawing.Imaging;
+using VTStudioToolBox.Helpers;
+using VTStudioToolBox.Models;
+using WinUIImage = Microsoft.UI.Xaml.Controls.Image;
+using WinUIBrush = Microsoft.UI.Xaml.Media.Brush;
 
 namespace VTStudioToolBox.Views
 {
     public sealed partial class UtilitiesPage : Page
     {
+        private static readonly List<ToolInfo> HardwareToolList = new()
+        {
+            new() { Name = "CPU-Z", Description = "ToolCPUDesc", ToolRelativePath = "cpuz_x64.exe", IconRelativePath = "cpuz_x64.exe" },
+            new() { Name = "Core Temp", Description = "ToolCoreTempDesc", ToolRelativePath = "CoreTemp\\Core Temp x64.exe", IconRelativePath = "CoreTemp\\Core Temp x64.exe" },
+            new() { Name = "AIDA64", Description = "ToolAIDA64Desc", ToolRelativePath = "AIDA64\\aida64.exe", IconRelativePath = "AIDA64\\aida64.exe" },
+            new() { Name = "HWiNFO", Description = "ToolHWINFODesc", ToolRelativePath = "hwinfo\\HWiNFO64.exe", IconRelativePath = "hwinfo\\HWiNFO64.exe" },
+            new() { Name = "GPU-Z", Description = "ToolGPUZDesc", ToolRelativePath = "GPUZ\\GPU-Z.exe", IconRelativePath = "GPUZ\\GPU-Z.exe" },
+            new() { Name = "FurMark", Description = "ToolFurMarkDesc", ToolRelativePath = "FurMark\\FurMark.exe", IconRelativePath = "FurMark\\FurMark.exe" },
+            new() { Name = "鲁大师", Description = "ToolLudashiDesc", ToolRelativePath = "ludashi.exe", IconRelativePath = "ludashi.exe" },
+            new() { Name = "MonitorInfo", Description = "ToolMonitorInfoDesc", ToolRelativePath = "color\\monitorinfo.exe", IconRelativePath = "color\\monitorinfo.exe" },
+        };
+
+        private static readonly List<ToolInfo> DiskToolList = new()
+        {
+            new() { Name = "CrystalDiskMark", Description = "ToolCDMDesc", ToolRelativePath = "CrystalDiskMark\\DiskMark64S.exe", IconRelativePath = "CrystalDiskMark\\DiskMark64S.exe" },
+            new() { Name = "CrystalDiskInfo", Description = "ToolCDIDesc", ToolRelativePath = "CrystalDiskInfo\\DiskInfo64S.exe", IconRelativePath = "CrystalDiskInfo\\DiskInfo64S.exe" },
+            new() { Name = "DiskGenius", Description = "ToolDiskGeniusDesc", ToolRelativePath = "DiskGenius.exe", IconRelativePath = "DiskGenius.exe" },
+            new() { Name = "SpaceSniffer", Description = "ToolSpaceSnifferDesc", ToolRelativePath = "SpaceSniffer\\SpaceSniffer.exe", IconRelativePath = "SpaceSniffer\\SpaceSniffer.exe" },
+        };
+
+        private static readonly List<ToolInfo> SystemToolList = new()
+        {
+            new() { Name = "Dism++", Description = "ToolDismppDesc", ToolRelativePath = "Dism++\\Dism++x64.exe", IconRelativePath = "Dism++\\Dism++x64.exe" },
+            new() { Name = "Geek Uninstaller", Description = "ToolGeekDesc", ToolRelativePath = "Geek Uninstaller\\Geek Uninstaller.exe", IconRelativePath = "Geek Uninstaller\\Geek Uninstaller.exe" },
+            new() { Name = "HEU KMS Activator", Description = "ToolHEUDesc", ToolRelativePath = "HEU_KMS_Activator_v63.2.0.exe", IconRelativePath = "HEU_KMS_Activator_v63.2.0.exe" },
+        };
+
         public UtilitiesPage()
         {
             this.InitializeComponent();
+            UpdateLanguage();
             this.Loaded += UtilitiesPage_Loaded;
+        }
+
+        private void UpdateLanguage()
+        {
+            PageTitle.Text = LanguageHelper.GetString("UtilitiesTitle");
+            PageSubtitle.Text = LanguageHelper.GetString("UtilitiesSubtitle");
+            HardwareHeader.Text = LanguageHelper.GetString("SectionHardware");
+            DiskHeader.Text = LanguageHelper.GetString("SectionDisk");
+            SystemHeader.Text = LanguageHelper.GetString("SectionSystem");
         }
 
         private void UtilitiesPage_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadAllIcons();
+            Logger.Dev("Utilities", $"Building tool lists: {HardwareToolList.Count} hardware, {DiskToolList.Count} disk, {SystemToolList.Count} system");
+            BuildToolList(HardwareTools, HardwareToolList);
+            BuildToolList(DiskTools, DiskToolList);
+            BuildToolList(SystemTools, SystemToolList);
         }
 
-        private void LoadAllIcons()
-        {
-            LoadIcon(CpuZIcon, "cpuz_x64.exe");
-            LoadIcon(CoreTempIcon, "CoreTemp", "Core Temp x64.exe");
-            LoadIcon(AIDA64Icon, "AIDA64", "aida64.exe");
-            LoadIcon(HWiNFOIcon, "hwinfo", "HWiNFO64.exe");
-            LoadIcon(GPUZIcon, "GPUZ", "GPU-Z.exe");
-            LoadIcon(FurMarkIcon, "FurMark", "FurMark.exe");
-            LoadIcon(LuDaShiIcon, "ludashi.exe");
-            LoadIcon(MonitorInfoIcon, "color", "monitorinfo.exe");
-
-            LoadIcon(DiskMarkIcon, "CrystalDiskMark", "DiskMark64S.exe");
-            LoadIcon(DiskInfoIcon, "CrystalDiskInfo", "DiskInfo64S.exe");
-            LoadIcon(DiskGeniusIcon, "DiskGenius.exe");
-            LoadIcon(SpaceSnifferIcon, "SpaceSniffer", "SpaceSniffer.exe");
-
-            LoadIcon(DismIcon, "Dism++", "Dism++x64.exe");
-            LoadIcon(GeekIcon, "Geek Uninstaller", "Geek Uninstaller.exe");
-            LoadIcon(KMSIcon, "HEU_KMS_Activator_v63.2.0.exe");
-        }
-
-        private void LoadIcon(Microsoft.UI.Xaml.Controls.Image imageControl, string exeName)
+        private void BuildToolList(StackPanel container, List<ToolInfo> tools)
         {
             string appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
-            string toolPath = Path.Combine(appDirectory, "Tools", exeName);
-            LoadIconFromPath(imageControl, toolPath);
+
+            foreach (var tool in tools)
+            {
+                var card = new Border
+                {
+                    Background = (WinUIBrush)Application.Current.Resources["CardBackgroundBrush"],
+                    CornerRadius = new CornerRadius(12),
+                    Padding = new Thickness(20),
+                    Margin = new Thickness(0, 0, 0, 12)
+                };
+
+                var grid = new Grid();
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0, GridUnitType.Auto) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0, GridUnitType.Auto) });
+
+                var icon = new WinUIImage
+                {
+                    Width = 32,
+                    Height = 32,
+                    Margin = new Thickness(0, 0, 16, 0),
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                LoadIconFromPath(icon, Path.Combine(appDirectory, "Tools", tool.IconRelativePath));
+                Grid.SetColumn(icon, 0);
+
+                var infoPanel = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+                infoPanel.Children.Add(new TextBlock
+                {
+                    Text = tool.Name,
+                    FontSize = 18,
+                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                    Foreground = (WinUIBrush)Application.Current.Resources["PrimaryTextBrush"]
+                });
+                infoPanel.Children.Add(new TextBlock
+                {
+                    Text = LanguageHelper.GetString(tool.Description),
+                    FontSize = 14,
+                    Foreground = (WinUIBrush)Application.Current.Resources["SecondaryTextBrush"],
+                    Margin = new Thickness(0, 4, 0, 0)
+                });
+                Grid.SetColumn(infoPanel, 1);
+
+                var launchBtn = new Button
+                {
+                    Content = LanguageHelper.GetString("ButtonLaunch"),
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                string toolPath = Path.Combine(appDirectory, "Tools", tool.ToolRelativePath);
+                string toolName = tool.Name;
+                launchBtn.Click += (s, e) => LaunchTool(toolPath, toolName);
+                Grid.SetColumn(launchBtn, 2);
+
+                grid.Children.Add(icon);
+                grid.Children.Add(infoPanel);
+                grid.Children.Add(launchBtn);
+                card.Child = grid;
+                container.Children.Add(card);
+            }
         }
 
-        private void LoadIcon(Microsoft.UI.Xaml.Controls.Image imageControl, string folder, string exeName)
-        {
-            string appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
-            string toolPath = Path.Combine(appDirectory, "Tools", folder, exeName);
-            LoadIconFromPath(imageControl, toolPath);
-        }
-
-        private void LoadIconFromPath(Microsoft.UI.Xaml.Controls.Image imageControl, string toolPath)
+        private void LoadIconFromPath(WinUIImage imageControl, string toolPath)
         {
             try
             {
                 if (File.Exists(toolPath))
                 {
-                    var icon = Icon.ExtractAssociatedIcon(toolPath);
+                    using var icon = Icon.ExtractAssociatedIcon(toolPath);
                     if (icon != null)
                     {
-                        var bitmap = icon.ToBitmap();
-                        using (var stream = new MemoryStream())
-                        {
-                            bitmap.Save(stream, ImageFormat.Png);
-                            stream.Position = 0;
-                            var bitmapImage = new BitmapImage();
-                            bitmapImage.SetSource(stream.AsRandomAccessStream());
-                            imageControl.Source = bitmapImage;
-                        }
+                        using var bitmap = icon.ToBitmap();
+                        using var stream = new MemoryStream();
+                        bitmap.Save(stream, ImageFormat.Png);
+                        stream.Position = 0;
+                        var bitmapImage = new BitmapImage();
+                        bitmapImage.SetSource(stream.AsRandomAccessStream());
+                        imageControl.Source = bitmapImage;
                     }
                 }
             }
-            catch
-            {
-            }
-        }
-
-        private string GetToolPath(string relativePath)
-        {
-            string appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
-            return Path.Combine(appDirectory, "Tools", relativePath);
+            catch { }
         }
 
         private async void LaunchTool(string toolPath, string toolName)
@@ -96,6 +161,7 @@ namespace VTStudioToolBox.Views
             {
                 if (File.Exists(toolPath))
                 {
+                    Logger.Info("Utilities", $"Launching tool: {toolName} ({toolPath})");
                     Process.Start(new ProcessStartInfo
                     {
                         FileName = toolPath,
@@ -104,11 +170,12 @@ namespace VTStudioToolBox.Views
                 }
                 else
                 {
+                    Logger.Warn("Utilities", $"Tool not found: {toolName} ({toolPath})");
                     var dialog = new ContentDialog
                     {
-                        Title = "错误",
-                        Content = $"找不到 {toolName}，请确保工具文件存在。",
-                        CloseButtonText = "确定",
+                        Title = LanguageHelper.GetString("DialogTitle_Error"),
+                        Content = LanguageHelper.GetString("ErrorToolNotFound", toolName),
+                        CloseButtonText = LanguageHelper.GetString("ButtonOK"),
                         XamlRoot = this.XamlRoot
                     };
                     await dialog.ShowAsync();
@@ -116,90 +183,16 @@ namespace VTStudioToolBox.Views
             }
             catch (Exception ex)
             {
+                Logger.Error("Utilities", $"Failed to launch {toolName}", ex);
                 var dialog = new ContentDialog
                 {
-                    Title = "启动失败",
-                    Content = $"启动 {toolName} 时出错：{ex.Message}",
-                    CloseButtonText = "确定",
+                    Title = LanguageHelper.GetString("DialogTitle_LaunchFailed"),
+                    Content = LanguageHelper.GetString("ErrorToolLaunchFailed", toolName, ex.Message),
+                    CloseButtonText = LanguageHelper.GetString("ButtonOK"),
                     XamlRoot = this.XamlRoot
                 };
                 await dialog.ShowAsync();
             }
-        }
-
-        private void BtnLaunchCpuZ_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("cpuz_x64.exe"), "CPU-Z");
-        }
-
-        private void BtnLaunchCoreTemp_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("CoreTemp\\Core Temp x64.exe"), "Core Temp");
-        }
-
-        private void BtnLaunchAIDA64_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("AIDA64\\aida64.exe"), "AIDA64");
-        }
-
-        private void BtnLaunchHWiNFO_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("hwinfo\\HWiNFO64.exe"), "HWiNFO");
-        }
-
-        private void BtnLaunchGPUZ_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("GPUZ\\GPU-Z.exe"), "GPU-Z");
-        }
-
-        private void BtnLaunchFurMark_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("FurMark\\FurMark.exe"), "FurMark");
-        }
-
-        private void BtnLaunchLuDaShi_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("ludashi.exe"), "鲁大师");
-        }
-
-        private void BtnLaunchMonitorInfo_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("color\\monitorinfo.exe"), "MonitorInfo");
-        }
-
-        private void BtnLaunchDiskMark_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("CrystalDiskMark\\DiskMark64S.exe"), "CrystalDiskMark");
-        }
-
-        private void BtnLaunchDiskInfo_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("CrystalDiskInfo\\DiskInfo64S.exe"), "CrystalDiskInfo");
-        }
-
-        private void BtnLaunchDiskGenius_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("DiskGenius.exe"), "DiskGenius");
-        }
-
-        private void BtnLaunchSpaceSniffer_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("SpaceSniffer\\SpaceSniffer.exe"), "SpaceSniffer");
-        }
-
-        private void BtnLaunchDism_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("Dism++\\Dism++x64.exe"), "Dism++");
-        }
-
-        private void BtnLaunchGeek_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("Geek Uninstaller\\Geek Uninstaller.exe"), "Geek Uninstaller");
-        }
-
-        private void BtnLaunchKMS_Click(object sender, RoutedEventArgs e)
-        {
-            LaunchTool(GetToolPath("HEU_KMS_Activator_v63.2.0.exe"), "HEU KMS Activator");
         }
     }
 }

@@ -1,0 +1,158 @@
+<Page
+    x:Class="VTStudioToolBox.Views.NetworkPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="Transparent">
+
+    <ScrollViewer>
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                <TextBlock x:Name="PageTitle" Style="{StaticResource PageTitleStyle}"/>
+                <TextBlock x:Name="PageSubtitle" Style="{StaticResource PageSubtitleStyle}"/>
+            </StackPanel>
+
+            <!-- STUN Server Config -->
+            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock x:Name="NATTypeHeader" FontSize="18" FontWeight="SemiBold"
+                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,0,0,16">
+                        <TextBlock x:Name="STUNServerLabel" FontSize="14"
+                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                   VerticalAlignment="Center"/>
+                        <ComboBox x:Name="StunServerComboBox"
+                                  Width="300"
+                                  FontSize="14"
+                                  IsEditable="True"
+                                  HorizontalAlignment="Left">
+                            <ComboBoxItem Content="stun.hot-chilli.net:3478" IsSelected="True"/>
+                            <ComboBoxItem Content="stun.fitauto.ru:3478"/>
+                            <ComboBoxItem Content="stun.internetcalls.com:3478"/>
+                            <ComboBoxItem Content="stun.voip.aebc.com:3478"/>
+                            <ComboBoxItem Content="stun.voipbuster.com:3478"/>
+                            <ComboBoxItem Content="stun.voipstunt.com:3478"/>
+                            <ComboBoxItem Content="stun.syncthing.net:3478"/>
+                            <ComboBoxItem Content="stun.miwifi.com:3478"/>
+                            <ComboBoxItem Content="stun.qq.com:3478"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Button x:Name="TestButton"
+                                Click="TestButton_Click"
+                                FontSize="12" BorderThickness="1" Padding="12,6">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE946;" FontSize="12"/>
+                                <TextBlock x:Name="TestButtonText"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button x:Name="ReduceNatButton"
+                                Click="ReduceNatButton_Click"
+                                FontSize="12" BorderThickness="1" Padding="12,6">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE71B;" FontSize="12"/>
+                                <TextBlock x:Name="ReduceNatButtonText"/>
+                            </StackPanel>
+                        </Button>
+
+                        <ProgressRing x:Name="TestProgress"
+                                      IsActive="False"
+                                      Width="16" Height="16"
+                                      VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- RFC 3489 Results -->
+            <Border x:Name="Rfc3489ResultBorder"
+                    Grid.Row="2"
+                    Style="{StaticResource CardBorderStyle}"
+                    Margin="0,0,0,8"
+                    Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock Text="RFC 3489" FontSize="18" FontWeight="SemiBold"
+                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock x:Name="LabelNATType" Grid.Row="0" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="NatTypeText" Grid.Row="0" Grid.Column="1" Style="{StaticResource InfoValueStyle}"
+                                   FontWeight="SemiBold" FontSize="16"/>
+
+                        <TextBlock x:Name="LabelLocalAddress" Grid.Row="1" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="LocalEndPointText" Grid.Row="1" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+
+                        <TextBlock x:Name="LabelPublicAddress" Grid.Row="2" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="PublicEndPointText" Grid.Row="2" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- RFC 5780 Results -->
+            <Border x:Name="Rfc5780ResultBorder"
+                    Grid.Row="3"
+                    Style="{StaticResource CardBorderStyle}"
+                    Margin="0,0,0,8"
+                    Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock Text="RFC 5780" FontSize="18" FontWeight="SemiBold"
+                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock x:Name="LabelBindingTest" Grid.Row="0" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="BindingTestText" Grid.Row="0" Grid.Column="1" Style="{StaticResource InfoValueStyle}"
+                                   FontWeight="SemiBold" FontSize="16"/>
+
+                        <TextBlock x:Name="LabelMappingBehavior" Grid.Row="1" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="MappingBehaviorText" Grid.Row="1" Grid.Column="1" Style="{StaticResource InfoValueStyle}"
+                                   FontWeight="SemiBold" FontSize="16"/>
+
+                        <TextBlock x:Name="LabelFilteringBehavior" Grid.Row="2" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="FilteringBehaviorText" Grid.Row="2" Grid.Column="1" Style="{StaticResource InfoValueStyle}"
+                                   FontWeight="SemiBold" FontSize="16"/>
+
+                        <TextBlock x:Name="LabelRfc5780Local" Grid.Row="3" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="Rfc5780LocalText" Grid.Row="3" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+
+                        <TextBlock x:Name="LabelRfc5780Public" Grid.Row="4" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="Rfc5780PublicText" Grid.Row="4" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+
+                        <TextBlock x:Name="LabelOtherAddress" Grid.Row="5" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="OtherAddressText" Grid.Row="5" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</Page>
