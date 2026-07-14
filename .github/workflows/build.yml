@@ -112,11 +112,13 @@ jobs:
           & dotnet @publishArgs
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
-          $version   = "${{ steps.version.outputs.version }}"
-          $buildNum  = "${{ steps.version.outputs.build_num }}"
-          $arch      = "${{ matrix.arch }}"
-          $tag       = "${{ matrix.build_type }}"
-          $name      = "[CI Build] VTStudioToolBox ${version} Build${buildNum} ${tag} ${arch}"
+          $version  = "${{ steps.version.outputs.version }}"
+          $buildNum = "${{ steps.version.outputs.build_num }}"
+          $arch     = "${{ matrix.arch }}"
+          $tag      = "${{ matrix.build_type }}"
+
+          # Use simple names without spaces
+          $name = "CIBuild_VTStudioToolBox_${version}_${buildNum}_${tag}_${arch}"
 
           if ($singleFile) {
             Copy-Item "$outDir/VTStudioToolBox.exe" "$name.exe"
@@ -124,14 +126,14 @@ jobs:
             Compress-Archive -Path "$outDir/*" -DestinationPath "$name.zip"
           }
 
-          echo "ARTIFACT_NAME=$name" >> $env:GITHUB_ENV
-          echo "Created artifact: $name"
+          Write-Host "Created: $name"
+          ls "$name.*"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ env.ARTIFACT_NAME }}.*
+          name: CIBuild_${{ matrix.build_type }}_${{ matrix.arch }}
+          path: CIBuild_*
 
   release:
     needs: build
@@ -161,6 +163,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+          pattern: CIBuild_*
           merge-multiple: true
 
       - name: List downloaded artifacts
@@ -185,9 +188,9 @@ jobs:
             ### Downloads
             | File | Arch | Type |
             |------|------|------|
-            | `[CI Build] VTStudioToolBox * Portable X64.exe` | x64 | Single-file |
-            | `[CI Build] VTStudioToolBox * Portable ARM64.exe` | ARM64 | Single-file |
-            | `[CI Build] VTStudioToolBox * Release X64.zip` | x64 | Folder |
-            | `[CI Build] VTStudioToolBox * Release ARM64.zip` | ARM64 | Folder |
+            | `*_Portable_X64.exe` | x64 | Single-file |
+            | `*_Portable_ARM64.exe` | ARM64 | Single-file |
+            | `*_Release_X64.zip` | x64 | Folder |
+            | `*_Release_ARM64.zip` | ARM64 | Folder |
           prerelease: false
           files: artifacts/*
