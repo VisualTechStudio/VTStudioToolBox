@@ -53,27 +53,40 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
+          cache: true
+          cache-dependency-path: "**/*.csproj"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       - name: Extract version from cfg.cs
         id: version
         shell: pwsh
         run: |
           $cs = Get-Content "cfg.cs" -Raw
-          if ($cs -match 'AppVersion\s*=\s*"(.+?)"') {
-            $raw = $Matches[1]
+          if ($cs -match 'AppVersionPrefix\s*=\s*"(.+?)"') {
+            $prefix = $Matches[1]
           } else {
-            Write-Error "Failed to parse version"
+            Write-Error "Failed to parse version prefix"
             exit 1
           }
-          if ($raw -match '\[(\w+)\]\s+(\S+)\s+\((.+?)\)') {
+          if ($prefix -match '\[(\w+)\]\s+(\S+)') {
             $buildType = $Matches[1]
             $version   = $Matches[2]
-            $buildNum  = $Matches[3]
-            $versionTag = "${version}(${buildNum})"
           } else {
-            Write-Error "Version format mismatch: $raw"
+            Write-Error "Version prefix format mismatch: $prefix"
             exit 1
           }
+          $now = [System.TimeZoneInfo]::ConvertTimeFromUtc(
+            [DateTime]::UtcNow,
+            [System.TimeZoneInfo]::FindSystemTimeZoneById("China Standard Time"))
+          $buildNum = $now.ToString("yyMMddHHmm")
+          $versionTag = "${version}(${buildNum})"
           $shortSha = "${{ github.sha }}".Substring(0, 7)
           echo "build_type=$buildType"       >> $env:GITHUB_OUTPUT
           echo "version=$version"            >> $env:GITHUB_OUTPUT
@@ -138,8 +151,8 @@ jobs:
         id: version
         shell: bash
         run: |
-          version=$(grep -oP 'AppVersion\s*=\s*"\[Release\]\s+\K[^(]+' cfg.cs | tr -d ' ')
-          build_num=$(grep -oP 'Build\.\K[^)]+' cfg.cs)
+          version=$(grep -oP 'AppVersionPrefix\s*=\s*"\[Release\]\s+\K\S+' cfg.cs | tr -d ' ')
+          build_num=$(TZ='Asia/Shanghai' date +'%y%m%d%H%M')
           short_sha="${GITHUB_SHA:0:7}"
           echo "tag=v${version}" >> $GITHUB_OUTPUT
           echo "name=[CI Build] Release ${version} (Build.${build_num})" >> $GITHUB_OUTPUT
@@ -151,10 +164,17 @@ jobs:
           path: artifacts
           merge-multiple: true
 
-      - name: Create or update GitHub Release
-        uses: andelf/nightly-release@main
+      - name: List downloaded artifacts
+        run: ls -la artifacts/
+
+      - name: Delete existing release if present
+        continue-on-error: true
+        run: gh release delete "${{ steps.version.outputs.tag }}" --yes --cleanup-tag
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: ${{ steps.version.outputs.name }}
