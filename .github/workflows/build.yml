@@ -1,4 +1,4 @@
-name: "[CI Build] New push! By ${{ github.actor }} (${{ github.sha }})"
+name: "[CI Build] New push!"
 
 on:
   push:
@@ -39,6 +39,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Print trigger info
+        shell: bash
+        run: |
+          echo "## [CI Build] New push!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **By**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Message**: ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Install .NET SDK
         uses: actions/setup-dotnet@v4
