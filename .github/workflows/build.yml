@@ -3,7 +3,6 @@ name: Build & Release
 on:
   push:
     branches: ["main"]
-    tags: ["v*"]
   pull_request:
     branches: ["main"]
   workflow_dispatch:
@@ -15,17 +14,27 @@ env:
 jobs:
   build:
     runs-on: windows-latest
+    name: Build ${{ matrix.arch }} (${{ matrix.build_type }})
 
     strategy:
       matrix:
-        platform:
-          - rid: win-x64
-            arch: X64
+        include:
+          - arch: X64
+            rid: win-x64
             dotnet_platform: x64
-          - rid: win-arm64
-            arch: ARM64
+            build_type: Portable
+          - arch: ARM64
+            rid: win-arm64
             dotnet_platform: ARM64
-        build_type: [Portable, Release]
+            build_type: Portable
+          - arch: X64
+            rid: win-x64
+            dotnet_platform: x64
+            build_type: Release
+          - arch: ARM64
+            rid: win-arm64
+            dotnet_platform: ARM64
+            build_type: Release
 
     steps:
       - name: Checkout
@@ -61,18 +70,17 @@ jobs:
           echo "build_num=$buildNum"     >> $env:GITHUB_OUTPUT
           echo "version_tag=$versionTag" >> $env:GITHUB_OUTPUT
 
-      - name: Build - ${{ matrix.platform.arch }} ${{ matrix.build_type }}
+      - name: Build
         shell: pwsh
         run: |
-          $singleFile = if ("${{ matrix.build_type }}" -eq "Portable") { $true } else { $false }
-          $tag = "${{ matrix.build_type }}"
-          $outDir = "publish_${{ matrix.platform.arch }}_${{ matrix.build_type }}"
+          $singleFile = ("${{ matrix.build_type }}" -eq "Portable")
+          $outDir = "publish_${{ matrix.arch }}_${{ matrix.build_type }}"
 
           $publishArgs = @(
             "publish", "-c", "Release",
-            "-p:Platform=${{ matrix.platform.dotnet_platform }}",
+            "-p:Platform=${{ matrix.dotnet_platform }}",
             "-p:SelfContained=true",
-            "-p:RuntimeIdentifier=${{ matrix.platform.rid }}",
+            "-p:RuntimeIdentifier=${{ matrix.rid }}",
             "-o", $outDir
           )
           if ($singleFile) {
@@ -84,13 +92,13 @@ jobs:
 
           $versionTag = "${{ steps.version.outputs.version_tag }}"
           $buildType  = "${{ steps.version.outputs.build_type }}"
-          $arch       = "${{ matrix.platform.arch }}"
+          $arch       = "${{ matrix.arch }}"
+          $tag        = "${{ matrix.build_type }}"
+          $name       = "${buildType}_VTStudioToolBox_${versionTag}_${tag}_${arch}"
 
           if ($singleFile) {
-            $name = "${buildType}_VTStudioToolBox_${versionTag}_${tag}_${arch}"
             Copy-Item "$outDir/VTStudioToolBox.exe" "$name.exe"
           } else {
-            $name = "${buildType}_VTStudioToolBox_${versionTag}_${tag}_${arch}"
             Compress-Archive -Path "$outDir/*" -DestinationPath "$name.zip"
           }
           echo "ARTIFACT_NAME=$name" >> $env:GITHUB_ENV
@@ -105,20 +113,45 @@ jobs:
 
   release:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    name: Create Release
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          version=$(grep -oP 'AppVersion\s*=\s*"\[Release\]\s+\K[^(]+' cfg.cs | tr -d ' ')
+          build_num=$(grep -oP 'Build\.\K[^)]+' cfg.cs)
+          echo "tag=v${version}" >> $GITHUB_OUTPUT
+          echo "name=Release ${version} (Build.${build_num})" >> $GITHUB_OUTPUT
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
           merge-multiple: true
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Create or update GitHub Release
+        uses: andelf/nightly-release@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          generate_release_notes: true
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.name }}
+          body: |
+            ## ${{ steps.version.outputs.name }}
+
+            ### Downloads
+            | File | Arch | Type |
+            |------|------|------|
+            | `*_Portable_X64.exe` | x64 | Single-file |
+            | `*_Portable_ARM64.exe` | ARM64 | Single-file |
+            | `*_Release_X64.zip` | x64 | Portable folder |
+            | `*_Release_ARM64.zip` | ARM64 | Portable folder |
+          prerelease: false
           files: artifacts/*
