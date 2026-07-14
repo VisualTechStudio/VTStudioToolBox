@@ -165,6 +165,8 @@ namespace VTStudioToolBox.Views
                     Build = build,
                     Size = size,
                     Date = date,
+                    DownloadLabel = LanguageHelper.GetString("ButtonDownload"),
+                    CopyLinkLabel = LanguageHelper.GetString("ButtonCopyLink"),
                     RawJson = item
                 });
             }
@@ -293,6 +295,8 @@ namespace VTStudioToolBox.Views
         public string Build { get; set; } = "";
         public string Size { get; set; } = "";
         public string Date { get; set; } = "";
+        public string DownloadLabel { get; set; } = "";
+        public string CopyLinkLabel { get; set; } = "";
         public JsonElement RawJson { get; set; }
     }
 }

@@ -3,8 +3,10 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using Windows.Graphics;
 using VTStudioToolBox.Helpers;
@@ -32,6 +34,7 @@ namespace VTStudioToolBox
             SetupImmersiveTitleBar();
             TryApplyBackdropEffect();
             SetWindowSize();
+            SetWindowIcon();
 
             NavView.SelectionChanged += OnNavigationSelectionChanged;
             this.Activated += OnWindowActivated;
@@ -118,6 +121,18 @@ namespace VTStudioToolBox
                 Background = new SolidColorBrush(Colors.Transparent),
                 VerticalAlignment = VerticalAlignment.Top
             });
+        }
+
+        private void SetWindowIcon()
+        {
+            try
+            {
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+                var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+                var appWindow = AppWindow.GetFromWindowId(windowId);
+                appWindow?.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "logo.png"));
+            }
+            catch { }
         }
 
         private void TryApplyBackdropEffect()

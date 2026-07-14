@@ -106,10 +106,22 @@
                                            VerticalAlignment="Center" Margin="12,0"/>
                                 <Button x:Name="BtnDownload" Grid.Column="2"
                                         Tag="{x:Bind}" Click="BtnDownloadDmg_Click"
-                                        VerticalAlignment="Center" Margin="8,0"/>
+                                        VerticalAlignment="Center" Margin="8,0"
+                                        FontSize="12" BorderThickness="1" Padding="12,6">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE896;" FontSize="12"/>
+                                        <TextBlock Text="{x:Bind DownloadLabel}"/>
+                                    </StackPanel>
+                                </Button>
                                 <Button x:Name="BtnCopyLink" Grid.Column="3"
                                         Tag="{x:Bind}" Click="BtnCopyLink_Click"
-                                        VerticalAlignment="Center"/>
+                                        VerticalAlignment="Center"
+                                        FontSize="12" BorderThickness="1" Padding="12,6">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE8C8;" FontSize="12"/>
+                                        <TextBlock Text="{x:Bind CopyLinkLabel}"/>
+                                    </StackPanel>
+                                </Button>
                             </Grid>
                         </Border>
                     </DataTemplate>
