@@ -86,12 +86,10 @@ jobs:
             [DateTime]::UtcNow,
             [System.TimeZoneInfo]::FindSystemTimeZoneById("China Standard Time"))
           $buildNum = $now.ToString("yyMMddHHmm")
-          $versionTag = "${version}(${buildNum})"
           $shortSha = "${{ github.sha }}".Substring(0, 7)
           echo "build_type=$buildType"       >> $env:GITHUB_OUTPUT
           echo "version=$version"            >> $env:GITHUB_OUTPUT
           echo "build_num=$buildNum"         >> $env:GITHUB_OUTPUT
-          echo "version_tag=$versionTag"     >> $env:GITHUB_OUTPUT
           echo "short_sha=$shortSha"         >> $env:GITHUB_OUTPUT
 
       - name: Build
@@ -114,27 +112,26 @@ jobs:
           & dotnet @publishArgs
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
-          $versionTag = "${{ steps.version.outputs.version_tag }}"
-          $buildType  = "${{ steps.version.outputs.build_type }}"
-          $shortSha   = "${{ steps.version.outputs.short_sha }}"
-          $arch       = "${{ matrix.arch }}"
-          $tag        = "${{ matrix.build_type }}"
-          $name       = "[CI Build] ${buildType}_VTStudioToolBox_${versionTag}_${tag}_${arch}"
+          $version   = "${{ steps.version.outputs.version }}"
+          $buildNum  = "${{ steps.version.outputs.build_num }}"
+          $arch      = "${{ matrix.arch }}"
+          $tag       = "${{ matrix.build_type }}"
+          $name      = "[CI Build] VTStudioToolBox ${version} Build${buildNum} ${tag} ${arch}"
 
           if ($singleFile) {
             Copy-Item "$outDir/VTStudioToolBox.exe" "$name.exe"
           } else {
             Compress-Archive -Path "$outDir/*" -DestinationPath "$name.zip"
           }
+
           echo "ARTIFACT_NAME=$name" >> $env:GITHUB_ENV
+          echo "Created artifact: $name"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          path: |
-            ${{ env.ARTIFACT_NAME }}.exe
-            ${{ env.ARTIFACT_NAME }}.zip
+          path: ${{ env.ARTIFACT_NAME }}.*
 
   release:
     needs: build
@@ -154,6 +151,8 @@ jobs:
           version=$(grep -oP 'AppVersionPrefix\s*=\s*"\[Release\]\s+\K\S+' cfg.cs | tr -d ' ')
           build_num=$(TZ='Asia/Shanghai' date +'%y%m%d%H%M')
           short_sha="${GITHUB_SHA:0:7}"
+          echo "version=${version}" >> $GITHUB_OUTPUT
+          echo "build_num=${build_num}" >> $GITHUB_OUTPUT
           echo "tag=v${version}" >> $GITHUB_OUTPUT
           echo "name=[CI Build] Release ${version} (Build.${build_num})" >> $GITHUB_OUTPUT
           echo "short_sha=${short_sha}" >> $GITHUB_OUTPUT
@@ -186,9 +185,9 @@ jobs:
             ### Downloads
             | File | Arch | Type |
             |------|------|------|
-            | `[CI Build] *_Portable_X64.exe` | x64 | Single-file |
-            | `[CI Build] *_Portable_ARM64.exe` | ARM64 | Single-file |
-            | `[CI Build] *_Release_X64.zip` | x64 | Portable folder |
-            | `[CI Build] *_Release_ARM64.zip` | ARM64 | Portable folder |
+            | `[CI Build] VTStudioToolBox * Portable X64.exe` | x64 | Single-file |
+            | `[CI Build] VTStudioToolBox * Portable ARM64.exe` | ARM64 | Single-file |
+            | `[CI Build] VTStudioToolBox * Release X64.zip` | x64 | Folder |
+            | `[CI Build] VTStudioToolBox * Release ARM64.zip` | ARM64 | Folder |
           prerelease: false
           files: artifacts/*
