@@ -1,4 +1,4 @@
-name: Build & Release
+name: "[CI Build] New push! By ${{ github.actor }} (${{ github.sha }})"
 
 on:
   push:
@@ -65,10 +65,12 @@ jobs:
             Write-Error "Version format mismatch: $raw"
             exit 1
           }
-          echo "build_type=$buildType"   >> $env:GITHUB_OUTPUT
-          echo "version=$version"        >> $env:GITHUB_OUTPUT
-          echo "build_num=$buildNum"     >> $env:GITHUB_OUTPUT
-          echo "version_tag=$versionTag" >> $env:GITHUB_OUTPUT
+          $shortSha = "${{ github.sha }}".Substring(0, 7)
+          echo "build_type=$buildType"       >> $env:GITHUB_OUTPUT
+          echo "version=$version"            >> $env:GITHUB_OUTPUT
+          echo "build_num=$buildNum"         >> $env:GITHUB_OUTPUT
+          echo "version_tag=$versionTag"     >> $env:GITHUB_OUTPUT
+          echo "short_sha=$shortSha"         >> $env:GITHUB_OUTPUT
 
       - name: Build
         shell: pwsh
@@ -92,9 +94,10 @@ jobs:
 
           $versionTag = "${{ steps.version.outputs.version_tag }}"
           $buildType  = "${{ steps.version.outputs.build_type }}"
+          $shortSha   = "${{ steps.version.outputs.short_sha }}"
           $arch       = "${{ matrix.arch }}"
           $tag        = "${{ matrix.build_type }}"
-          $name       = "${buildType}_VTStudioToolBox_${versionTag}_${tag}_${arch}"
+          $name       = "[CI Build] ${buildType}_VTStudioToolBox_${versionTag}_${tag}_${arch}"
 
           if ($singleFile) {
             Copy-Item "$outDir/VTStudioToolBox.exe" "$name.exe"
@@ -124,11 +127,14 @@ jobs:
 
       - name: Extract version
         id: version
+        shell: bash
         run: |
           version=$(grep -oP 'AppVersion\s*=\s*"\[Release\]\s+\K[^(]+' cfg.cs | tr -d ' ')
           build_num=$(grep -oP 'Build\.\K[^)]+' cfg.cs)
+          short_sha="${GITHUB_SHA:0:7}"
           echo "tag=v${version}" >> $GITHUB_OUTPUT
-          echo "name=Release ${version} (Build.${build_num})" >> $GITHUB_OUTPUT
+          echo "name=[CI Build] Release ${version} (Build.${build_num})" >> $GITHUB_OUTPUT
+          echo "short_sha=${short_sha}" >> $GITHUB_OUTPUT
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -146,12 +152,14 @@ jobs:
           body: |
             ## ${{ steps.version.outputs.name }}
 
+            > Triggered by `${{ github.actor }}` on commit `${{ steps.version.outputs.short_sha }}`
+
             ### Downloads
             | File | Arch | Type |
             |------|------|------|
-            | `*_Portable_X64.exe` | x64 | Single-file |
-            | `*_Portable_ARM64.exe` | ARM64 | Single-file |
-            | `*_Release_X64.zip` | x64 | Portable folder |
-            | `*_Release_ARM64.zip` | ARM64 | Portable folder |
+            | `[CI Build] *_Portable_X64.exe` | x64 | Single-file |
+            | `[CI Build] *_Portable_ARM64.exe` | ARM64 | Single-file |
+            | `[CI Build] *_Release_X64.zip` | x64 | Portable folder |
+            | `[CI Build] *_Release_ARM64.zip` | ARM64 | Portable folder |
           prerelease: false
           files: artifacts/*
