@@ -1,0 +1,124 @@
+name: Build & Release
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        platform:
+          - rid: win-x64
+            arch: X64
+            dotnet_platform: x64
+          - rid: win-arm64
+            arch: ARM64
+            dotnet_platform: ARM64
+        build_type: [Portable, Release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Extract version from cfg.cs
+        id: version
+        shell: pwsh
+        run: |
+          $cs = Get-Content "cfg.cs" -Raw
+          if ($cs -match 'AppVersion\s*=\s*"(.+?)"') {
+            $raw = $Matches[1]
+          } else {
+            Write-Error "Failed to parse version"
+            exit 1
+          }
+          if ($raw -match '\[(\w+)\]\s+(\S+)\s+\((.+?)\)') {
+            $buildType = $Matches[1]
+            $version   = $Matches[2]
+            $buildNum  = $Matches[3]
+            $versionTag = "${version}(${buildNum})"
+          } else {
+            Write-Error "Version format mismatch: $raw"
+            exit 1
+          }
+          echo "build_type=$buildType"   >> $env:GITHUB_OUTPUT
+          echo "version=$version"        >> $env:GITHUB_OUTPUT
+          echo "build_num=$buildNum"     >> $env:GITHUB_OUTPUT
+          echo "version_tag=$versionTag" >> $env:GITHUB_OUTPUT
+
+      - name: Build - ${{ matrix.platform.arch }} ${{ matrix.build_type }}
+        shell: pwsh
+        run: |
+          $singleFile = if ("${{ matrix.build_type }}" -eq "Portable") { $true } else { $false }
+          $tag = "${{ matrix.build_type }}"
+          $outDir = "publish_${{ matrix.platform.arch }}_${{ matrix.build_type }}"
+
+          $publishArgs = @(
+            "publish", "-c", "Release",
+            "-p:Platform=${{ matrix.platform.dotnet_platform }}",
+            "-p:SelfContained=true",
+            "-p:RuntimeIdentifier=${{ matrix.platform.rid }}",
+            "-o", $outDir
+          )
+          if ($singleFile) {
+            $publishArgs += "-p:PublishSingleFile=true"
+          }
+
+          & dotnet @publishArgs
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+          $versionTag = "${{ steps.version.outputs.version_tag }}"
+          $buildType  = "${{ steps.version.outputs.build_type }}"
+          $arch       = "${{ matrix.platform.arch }}"
+
+          if ($singleFile) {
+            $name = "${buildType}_VTStudioToolBox_${versionTag}_${tag}_${arch}"
+            Copy-Item "$outDir/VTStudioToolBox.exe" "$name.exe"
+          } else {
+            $name = "${buildType}_VTStudioToolBox_${versionTag}_${tag}_${arch}"
+            Compress-Archive -Path "$outDir/*" -DestinationPath "$name.zip"
+          }
+          echo "ARTIFACT_NAME=$name" >> $env:GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: |
+            ${{ env.ARTIFACT_NAME }}.exe
+            ${{ env.ARTIFACT_NAME }}.zip
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: artifacts/*
