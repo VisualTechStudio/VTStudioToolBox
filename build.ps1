@@ -65,7 +65,22 @@ function Build-Release {
 
         if ($LASTEXITCODE -ne 0) { Write-Host "[FAIL] $platUp Portable" -ForegroundColor Red; exit 1 }
 
-        # Post-publish: ensure content files exist with correct sizes
+        # Portable: copy single exe directly, no content directories
+        if (Test-Path $artifact) { Remove-Item $artifact -Force }
+        Copy-Item (Join-Path $tempDir "VTStudioToolBox.exe") $artifact -Force
+    } else {
+        $artifact = Join-Path $outputDir "$outName.zip"
+
+        Write-Host "[BUILD] $platUp Release (Normal)..." -ForegroundColor Yellow
+        dotnet publish -c Release `
+            -p:Platform=$Platform `
+            -p:SelfContained=true `
+            -p:RuntimeIdentifier=$Rid `
+            -o $tempDir
+
+        if ($LASTEXITCODE -ne 0) { Write-Host "[FAIL] $platUp Release" -ForegroundColor Red; exit 1 }
+
+        # Release: copy content directories
         $srcDir = "."
         $contentDirs = @("platform-tools", "Tools", "Strings", "Assets")
         foreach ($dir in $contentDirs) {
@@ -95,20 +110,6 @@ function Build-Release {
             }
         }
 
-        $artifact = Join-Path $outputDir "$outName.zip"
-        if (Test-Path $artifact) { Remove-Item $artifact -Force }
-        Compress-Archive -Path (Join-Path $tempDir "*") -DestinationPath $artifact -Force
-    } else {
-        $artifact = Join-Path $outputDir "$outName.zip"
-
-        Write-Host "[BUILD] $platUp Release (Normal)..." -ForegroundColor Yellow
-        dotnet publish -c Release `
-            -p:Platform=$Platform `
-            -p:SelfContained=true `
-            -p:RuntimeIdentifier=$Rid `
-            -o $tempDir
-
-        if ($LASTEXITCODE -ne 0) { Write-Host "[FAIL] $platUp Release" -ForegroundColor Red; exit 1 }
         if (Test-Path $artifact) { Remove-Item $artifact -Force }
         Compress-Archive -Path (Join-Path $tempDir "*") -DestinationPath $artifact -Force
     }
