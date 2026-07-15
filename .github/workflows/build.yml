@@ -113,7 +113,23 @@ jobs:
           & dotnet @publishArgs
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
-          # Verify critical content files exist
+          # Post-publish: ensure content files exist with correct sizes
+          $srcDir = "."
+          $contentDirs = @("platform-tools", "Tools", "Strings", "Assets")
+          foreach ($dir in $contentDirs) {
+            $srcPath = Join-Path $srcDir $dir
+            $dstPath = Join-Path $outDir $dir
+            if (Test-Path $srcPath) {
+              if (-not (Test-Path $dstPath)) {
+                New-Item -ItemType Directory -Path $dstPath -Force | Out-Null
+              }
+              Copy-Item "$srcPath\*" $dstPath -Recurse -Force
+            }
+          }
+          # Also copy root content files
+          Copy-Item "EULA.html" $outDir -Force -ErrorAction SilentlyContinue
+
+          # Verify critical content files exist and have reasonable sizes
           $requiredFiles = @(
             "platform-tools/adb.exe",
             "Strings/zh-CN.json",
@@ -123,6 +139,8 @@ jobs:
             $fullPath = Join-Path $outDir $file
             if (-not (Test-Path $fullPath)) {
               Write-Warning "Missing content: $file"
+            } elseif ((Get-Item $fullPath).Length -lt 1000) {
+              Write-Warning "Content file too small ($file): $((Get-Item $fullPath).Length) bytes"
             }
           }
 
@@ -134,11 +152,7 @@ jobs:
           # Use simple names without spaces
           $name = "CIBuild_VTStudioToolBox_${version}_${buildNum}_${tag}_${arch}"
 
-          if ($singleFile) {
-            Copy-Item "$outDir/VTStudioToolBox.exe" "$name.exe"
-          } else {
-            Compress-Archive -Path "$outDir/*" -DestinationPath "$name.zip"
-          }
+          Compress-Archive -Path "$outDir/*" -DestinationPath "$name.zip"
 
           Write-Host "Created: $name"
           ls "$name.*"
@@ -202,9 +216,9 @@ jobs:
             ### Downloads
             | File | Arch | Type |
             |------|------|------|
-            | `*_Portable_X64.exe` | x64 | Single-file |
-            | `*_Portable_ARM64.exe` | ARM64 | Single-file |
-            | `*_Release_X64.zip` | x64 | Folder |
-            | `*_Release_ARM64.zip` | ARM64 | Folder |
+            | `*_Portable_X64.zip` | x64 | Self-contained |
+            | `*_Portable_ARM64.zip` | ARM64 | Self-contained |
+            | `*_Release_X64.zip` | x64 | Self-contained |
+            | `*_Release_ARM64.zip` | ARM64 | Self-contained |
           prerelease: false
           files: artifacts/*

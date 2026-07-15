@@ -32,18 +32,27 @@
 		<Content Include="Assets\Wide310x150Logo.scale-200.png" />
 		<Content Include="Assets\hackintosh.svg">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+		<Content Include="Assets\android.svg">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
 		<Content Include="Assets\dwg.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
 		<Content Include="Assets\xcy.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
 		<Content Include="Assets\kpdw.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
 		<Content Include="Assets\logo.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
 		<Resource Include="Assets\logo.png" />
 		<Resource Include="Assets\dwg.png" />
@@ -51,9 +60,11 @@
 		<Resource Include="Assets\kpdw.png" />
 		<Content Include="EULA.html">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
 		<Content Include="Strings\*.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
 	</ItemGroup>
 
@@ -76,203 +87,84 @@
 		<PackageReference Include="System.Management" Version="10.0.2" />
 	</ItemGroup>
 
-	<!-- 工具文件 - 只包含必要的文件，排除可能引起冲突的DLL -->
+	<!-- 工具文件 - 使用通配符简化包含 -->
 	<ItemGroup>
-		<!-- 硬件检测 -->
+		<!-- 顶层工具 -->
 		<Content Include="Tools\cpuz_x64.exe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
 		<Content Include="Tools\ludashi.exe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
 		<Content Include="Tools\DiskGenius.exe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
 		<Content Include="Tools\HEU_KMS_Activator_v63.2.0.exe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<!-- 子目录工具 - CoreTemp -->
-		<Content Include="Tools\CoreTemp\Core Temp x64.exe">
+		<!-- CoreTemp -->
+		<Content Include="Tools\CoreTemp\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<Content Include="Tools\CoreTemp\Core Temp x86.exe">
+		<!-- AIDA64 -->
+		<Content Include="Tools\AIDA64\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<Content Include="Tools\CoreTemp\CoreTemp.ini">
+		<!-- hwinfo -->
+		<Content Include="Tools\hwinfo\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<Content Include="Tools\CoreTemp\Languages\**\*.*">
+		<!-- GPUZ -->
+		<Content Include="Tools\GPUZ\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<!-- 子目录工具 - AIDA64 -->
-		<Content Include="Tools\AIDA64\aida64.exe">
+		<!-- FurMark -->
+		<Content Include="Tools\FurMark\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<Content Include="Tools\AIDA64\**\*.dll">
+		<!-- CrystalDiskMark -->
+		<Content Include="Tools\CrystalDiskMark\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<Content Include="Tools\AIDA64\**\*.sys">
+		<!-- CrystalDiskInfo -->
+		<Content Include="Tools\CrystalDiskInfo\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<Content Include="Tools\AIDA64\**\*.ini">
+		<!-- SpaceSniffer -->
+		<Content Include="Tools\SpaceSniffer\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<Content Include="Tools\AIDA64\**\*.dat">
+		<!-- color -->
+		<Content Include="Tools\color\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<Content Include="Tools\AIDA64\**\*.cpl">
+		<!-- Dism++ -->
+		<Content Include="Tools\Dism++\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<Content Include="Tools\AIDA64\**\*.vsb">
+		<!-- Geek Uninstaller -->
+		<Content Include="Tools\Geek Uninstaller\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\AIDA64\**\*.spzip">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\AIDA64\**\*.txt">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\AIDA64\**\*.mdb">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\AIDA64\**\*.sql">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\AIDA64\**\*.manifest">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\AIDA64\**\*.mem">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<!-- 子目录工具 - hwinfo -->
-		<Content Include="Tools\hwinfo\HWiNFO64.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\hwinfo\**\*.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\hwinfo\**\*.ini">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<!-- 子目录工具 - GPUZ -->
-		<Content Include="Tools\GPUZ\GPU-Z.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<!-- 子目录工具 - FurMark -->
-		<Content Include="Tools\FurMark\FurMark.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\FurMark\**\*.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\FurMark\**\*.wav">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\FurMark\**\*.bat">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\FurMark\**\*.txt">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\FurMark\**\*.xml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\FurMark\**\*.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<!-- 子目录工具 - CrystalDiskMark -->
-		<Content Include="Tools\CrystalDiskMark\DiskMark64.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\CrystalDiskMark\DiskMark64S.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\CrystalDiskMark\**\*.ini">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\CrystalDiskMark\CdmResource\**\*.*">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<!-- 子目录工具 - CrystalDiskInfo -->
-		<Content Include="Tools\CrystalDiskInfo\DiskInfo32S.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\CrystalDiskInfo\DiskInfo64S.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\CrystalDiskInfo\**\*.ini">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\CrystalDiskInfo\CdiResource\**\*.*">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\CrystalDiskInfo\Smart\**\*.*">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<!-- 子目录工具 - SpaceSniffer -->
-		<Content Include="Tools\SpaceSniffer\SpaceSniffer.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<!-- 子目录工具 - color -->
-		<Content Include="Tools\color\monitorinfo.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<!-- 子目录工具 - Dism++ -->
-		<Content Include="Tools\Dism++\Dism++x64.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\Dism++\Dism++x86.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\Dism++\Dism++ARM64.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\Dism++\Config\**\*.*">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Tools\Dism++\*.txt">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<!-- 子目录工具 - Geek Uninstaller -->
-		<Content Include="Tools\Geek Uninstaller\Geek Uninstaller.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
 		<!-- ADB Platform Tools -->
-		<Content Include="platform-tools\adb.exe">
+		<Content Include="platform-tools\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="platform-tools\AdbWinApi.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="platform-tools\AdbWinUsbApi.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="platform-tools\fastboot.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="platform-tools\etc1tool.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="platform-tools\hprof-conv.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="platform-tools\sqlite3.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="platform-tools\libwinpthread-1.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="platform-tools\mke2fs.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="platform-tools\mke2fs.conf">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="platform-tools\make_f2fs.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="platform-tools\make_f2fs_casefold.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
 	</ItemGroup>
 

@@ -65,7 +65,22 @@ function Build-Release {
 
         if ($LASTEXITCODE -ne 0) { Write-Host "[FAIL] $platUp Portable" -ForegroundColor Red; exit 1 }
 
-        # Verify critical content files exist
+        # Post-publish: ensure content files exist with correct sizes
+        $srcDir = "."
+        $contentDirs = @("platform-tools", "Tools", "Strings", "Assets")
+        foreach ($dir in $contentDirs) {
+            $srcPath = Join-Path $srcDir $dir
+            $dstPath = Join-Path $tempDir $dir
+            if (Test-Path $srcPath) {
+                if (-not (Test-Path $dstPath)) {
+                    New-Item -ItemType Directory -Path $dstPath -Force | Out-Null
+                }
+                Copy-Item "$srcPath\*" $dstPath -Recurse -Force
+            }
+        }
+        Copy-Item "EULA.html" $tempDir -Force -ErrorAction SilentlyContinue
+
+        # Verify critical content files exist and have reasonable sizes
         $requiredFiles = @(
             "platform-tools\adb.exe",
             "Strings\zh-CN.json",
@@ -75,10 +90,14 @@ function Build-Release {
             $fullPath = Join-Path $tempDir $file
             if (-not (Test-Path $fullPath)) {
                 Write-Host "[WARN] Missing content: $file" -ForegroundColor Yellow
+            } elseif ((Get-Item $fullPath).Length -lt 1000) {
+                Write-Host "[WARN] Content file too small ($file): $((Get-Item $fullPath).Length) bytes" -ForegroundColor Yellow
             }
         }
 
-        Copy-Item (Join-Path $tempDir "VTStudioToolBox.exe") $artifact -Force
+        $artifact = Join-Path $outputDir "$outName.zip"
+        if (Test-Path $artifact) { Remove-Item $artifact -Force }
+        Compress-Archive -Path (Join-Path $tempDir "*") -DestinationPath $artifact -Force
     } else {
         $artifact = Join-Path $outputDir "$outName.zip"
 
