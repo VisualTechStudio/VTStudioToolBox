@@ -107,10 +107,24 @@ jobs:
           )
           if ($singleFile) {
             $publishArgs += "-p:PublishSingleFile=true"
+            $publishArgs += "-p:IncludeAllContentForSelfExtract=true"
           }
 
           & dotnet @publishArgs
           if ($LASTEXITCODE -ne 0) { exit 1 }
+
+          # Verify critical content files exist
+          $requiredFiles = @(
+            "platform-tools/adb.exe",
+            "Strings/zh-CN.json",
+            "Assets/logo.png"
+          )
+          foreach ($file in $requiredFiles) {
+            $fullPath = Join-Path $outDir $file
+            if (-not (Test-Path $fullPath)) {
+              Write-Warning "Missing content: $file"
+            }
+          }
 
           $version  = "${{ steps.version.outputs.version }}"
           $buildNum = "${{ steps.version.outputs.build_num }}"

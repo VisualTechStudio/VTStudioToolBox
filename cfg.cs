@@ -5,7 +5,7 @@ namespace VTStudioToolBox
 {
     public static class Cfg
     {
-        private const string AppVersionPrefix = "[Release] 1.1 (Build.";
+        private const string AppVersionPrefix = "[Release] 1.2.1 (Build.";
 
         public static string AppVersion
         {

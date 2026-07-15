@@ -59,10 +59,25 @@ function Build-Release {
             -p:Platform=$Platform `
             -p:PublishSingleFile=true `
             -p:SelfContained=true `
+            -p:IncludeAllContentForSelfExtract=true `
             -p:RuntimeIdentifier=$Rid `
             -o $tempDir
 
         if ($LASTEXITCODE -ne 0) { Write-Host "[FAIL] $platUp Portable" -ForegroundColor Red; exit 1 }
+
+        # Verify critical content files exist
+        $requiredFiles = @(
+            "platform-tools\adb.exe",
+            "Strings\zh-CN.json",
+            "Assets\logo.png"
+        )
+        foreach ($file in $requiredFiles) {
+            $fullPath = Join-Path $tempDir $file
+            if (-not (Test-Path $fullPath)) {
+                Write-Host "[WARN] Missing content: $file" -ForegroundColor Yellow
+            }
+        }
+
         Copy-Item (Join-Path $tempDir "VTStudioToolBox.exe") $artifact -Force
     } else {
         $artifact = Join-Path $outputDir "$outName.zip"
