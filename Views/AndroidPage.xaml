@@ -1,0 +1,198 @@
+<Page
+    x:Class="VTStudioToolBox.Views.AndroidPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="Transparent">
+
+    <ScrollViewer>
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                <TextBlock x:Name="PageTitle" Style="{StaticResource PageTitleStyle}"/>
+                <TextBlock x:Name="PageSubtitle" Style="{StaticResource PageSubtitleStyle}"/>
+            </StackPanel>
+
+            <!-- ADB Status Card -->
+            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock x:Name="AdbStatusHeader" FontSize="18" FontWeight="SemiBold"
+                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+                    <Grid Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="AdbStatusText" Grid.Column="0"
+                                   FontSize="14" FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryTextBrush}"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock x:Name="AdbPidText" Grid.Column="1"
+                                   FontSize="12" Foreground="{StaticResource SecondaryTextBrush}"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                    <TextBlock x:Name="AdbVersionText" FontSize="12"
+                               Foreground="{StaticResource SecondaryTextBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Devices Card -->
+            <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock x:Name="DevicesHeader" FontSize="18" FontWeight="SemiBold"
+                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+                    <ContentControl x:Name="DeviceListHost"/>
+                    <TextBlock x:Name="NoDevicesText" FontSize="13" FontStyle="Italic"
+                               Foreground="{StaticResource SecondaryTextBrush}"
+                               Margin="0,4,0,0" Visibility="Collapsed"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Bottom Row: Device Info + Quick Actions -->
+            <Grid Grid.Row="3" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Device Info Card -->
+                <Grid Grid.Column="0">
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock x:Name="DeviceInfoHeader" FontSize="18" FontWeight="SemiBold"
+                                       Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Row 0: 设备 -->
+                                <TextBlock x:Name="LabelDevice" Grid.Row="0" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                                <TextBlock x:Name="ValueDevice" Grid.Row="0" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+
+                                <!-- Row 1: 内核 -->
+                                <TextBlock x:Name="LabelKernel" Grid.Row="1" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                                <TextBlock x:Name="ValueKernel" Grid.Row="1" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+
+                                <!-- Row 2: 硬件 -->
+                                <TextBlock x:Name="LabelHardware" Grid.Row="2" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                                <TextBlock x:Name="ValueHardware" Grid.Row="2" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+
+                                <!-- Row 3: OS -->
+                                <TextBlock x:Name="LabelOS" Grid.Row="3" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                                <TextBlock x:Name="ValueOS" Grid.Row="3" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+
+                                <!-- Row 4: 电量 -->
+                                <TextBlock x:Name="LabelBattery" Grid.Row="4" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                                <TextBlock x:Name="ValueBattery" Grid.Row="4" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+
+                                <!-- Row 5: 分辨率 -->
+                                <TextBlock x:Name="LabelResolution" Grid.Row="5" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
+                                <TextBlock x:Name="ValueResolution" Grid.Row="5" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                    <Border x:Name="DeviceOverlay" Background="#80808080"
+                            CornerRadius="12" Visibility="Collapsed"/>
+                </Grid>
+
+                <!-- Quick Actions Card -->
+                <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock x:Name="ActionsHeader" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+
+                        <!-- Reboot Section -->
+                        <TextBlock x:Name="RebootSectionHeader" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{StaticResource SecondaryTextBrush}" Margin="0,0,0,6"/>
+                        <Grid ColumnSpacing="6" RowSpacing="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Button x:Name="BtnReboot" Click="BtnReboot_Click"
+                                    HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
+                                    Grid.Row="0" Grid.Column="0">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE708;" FontSize="12"/>
+                                    <TextBlock x:Name="BtnRebootText" FontSize="12" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnRebootBootloader" Click="BtnRebootBootloader_Click"
+                                    HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
+                                    Grid.Row="0" Grid.Column="1">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE74E;" FontSize="12"/>
+                                    <TextBlock x:Name="BtnRebootBootloaderText" FontSize="12" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnRebootFastbootd" Click="BtnRebootFastbootd_Click"
+                                    HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
+                                    Grid.Row="1" Grid.Column="0">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE777;" FontSize="12"/>
+                                    <TextBlock x:Name="BtnRebootFastbootdText" FontSize="12" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnRebootRecovery" Click="BtnRebootRecovery_Click"
+                                    HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
+                                    Grid.Row="1" Grid.Column="1">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE777;" FontSize="12"/>
+                                    <TextBlock x:Name="BtnRebootRecoveryText" FontSize="12" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!-- Screen Section -->
+                        <TextBlock x:Name="ScreenSectionHeader" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{StaticResource SecondaryTextBrush}" Margin="0,12,0,6"/>
+                        <Grid ColumnSpacing="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button x:Name="BtnScreenshot" Click="BtnScreenshot_Click"
+                                    HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
+                                    Grid.Column="0">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE7FB;" FontSize="12"/>
+                                    <TextBlock x:Name="BtnScreenshotText" FontSize="12" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnScreenRecord" Click="BtnScreenRecord_Click"
+                                    HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
+                                    Grid.Column="1">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon x:Name="ScreenRecordIcon" Glyph="&#xE714;" FontSize="12"/>
+                                    <TextBlock x:Name="BtnScreenRecordText" FontSize="12" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+        </Grid>
+    </ScrollViewer>
+</Page>

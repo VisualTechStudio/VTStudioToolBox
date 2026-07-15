@@ -1,12 +1,13 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using VTStudioToolBox.Helpers;
+using VTStudioToolBox.Views;
 
 namespace VTStudioToolBox
 {
     public partial class App : Application
     {
-        private Window? m_window;
+        internal Window? m_window;
 
         public App()
         {
@@ -23,6 +24,7 @@ namespace VTStudioToolBox
             FirewallHelper.EnsureFirewallRule();
 
             m_window = new MainWindow();
+            WindowHelper.SetWindow(m_window);
 
             if (m_window.Content is FrameworkElement rootElement)
             {
@@ -30,6 +32,8 @@ namespace VTStudioToolBox
             }
 
             m_window.Activate();
+
+            AdbCache.Start();
         }
     }
 }

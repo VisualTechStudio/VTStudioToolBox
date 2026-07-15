@@ -22,6 +22,7 @@ namespace VTStudioToolBox
             ["utilities"] = typeof(UtilitiesPage),
             ["network"] = typeof(NetworkPage),
             ["macos"] = typeof(MacOSPage),
+            ["android"] = typeof(AndroidPage),
             ["settings"] = typeof(SettingsPage),
         };
 
@@ -49,6 +50,7 @@ namespace VTStudioToolBox
             NavUtilities.Content = LanguageHelper.GetString("NavUtilities");
             NavNetwork.Content = LanguageHelper.GetString("NavNetwork");
             NavHackintosh.Content = LanguageHelper.GetString("NavHackintosh");
+            NavAndroid.Content = LanguageHelper.GetString("NavAndroid");
 
             if (NavView.SettingsItem is NavigationViewItem settingsItem)
             {
@@ -197,6 +199,7 @@ namespace VTStudioToolBox
                     "utilities" => "Utilities",
                     "network" => "Network",
                     "macos" => "Hackintosh",
+                    "android" => "Android",
                     "settings" => "Settings",
                     _ => pageKey
                 };
