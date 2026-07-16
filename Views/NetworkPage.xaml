@@ -14,19 +14,19 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,24">
-                <TextBlock x:Name="PageTitle" Style="{StaticResource PageTitleStyle}"/>
-                <TextBlock x:Name="PageSubtitle" Style="{StaticResource PageSubtitleStyle}"/>
+                <TextBlock x:Name="PageTitle" Style="{ThemeResource PageTitleStyle}"/>
+                <TextBlock x:Name="PageSubtitle" Style="{ThemeResource PageSubtitleStyle}"/>
             </StackPanel>
 
             <!-- STUN Server Config -->
-            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}">
+            <Border Grid.Row="1" Style="{ThemeResource CardBorderStyle}">
                 <StackPanel>
                     <TextBlock x:Name="NATTypeHeader" FontSize="18" FontWeight="SemiBold"
-                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+                               Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
 
                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,0,0,16">
                         <TextBlock x:Name="STUNServerLabel" FontSize="14"
-                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                   Foreground="{ThemeResource SecondaryTextBrush}"
                                    VerticalAlignment="Center"/>
                         <ComboBox x:Name="StunServerComboBox"
                                   Width="300"
@@ -75,12 +75,12 @@
             <!-- RFC 3489 Results -->
             <Border x:Name="Rfc3489ResultBorder"
                     Grid.Row="2"
-                    Style="{StaticResource CardBorderStyle}"
+                    Style="{ThemeResource CardBorderStyle}"
                     Margin="0,0,0,8"
                     Visibility="Collapsed">
                 <StackPanel>
                     <TextBlock Text="RFC 3489" FontSize="18" FontWeight="SemiBold"
-                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+                               Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -93,15 +93,15 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock x:Name="LabelNATType" Grid.Row="0" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                        <TextBlock x:Name="NatTypeText" Grid.Row="0" Grid.Column="1" Style="{StaticResource InfoValueStyle}"
+                        <TextBlock x:Name="LabelNATType" Grid.Row="0" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="NatTypeText" Grid.Row="0" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"
                                    FontWeight="SemiBold" FontSize="16"/>
 
-                        <TextBlock x:Name="LabelLocalAddress" Grid.Row="1" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                        <TextBlock x:Name="LocalEndPointText" Grid.Row="1" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                        <TextBlock x:Name="LabelLocalAddress" Grid.Row="1" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="LocalEndPointText" Grid.Row="1" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
 
-                        <TextBlock x:Name="LabelPublicAddress" Grid.Row="2" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                        <TextBlock x:Name="PublicEndPointText" Grid.Row="2" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                        <TextBlock x:Name="LabelPublicAddress" Grid.Row="2" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="PublicEndPointText" Grid.Row="2" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
                     </Grid>
                 </StackPanel>
             </Border>
@@ -109,12 +109,12 @@
             <!-- RFC 5780 Results -->
             <Border x:Name="Rfc5780ResultBorder"
                     Grid.Row="3"
-                    Style="{StaticResource CardBorderStyle}"
+                    Style="{ThemeResource CardBorderStyle}"
                     Margin="0,0,0,8"
                     Visibility="Collapsed">
                 <StackPanel>
                     <TextBlock Text="RFC 5780" FontSize="18" FontWeight="SemiBold"
-                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+                               Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -130,26 +130,26 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock x:Name="LabelBindingTest" Grid.Row="0" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                        <TextBlock x:Name="BindingTestText" Grid.Row="0" Grid.Column="1" Style="{StaticResource InfoValueStyle}"
+                        <TextBlock x:Name="LabelBindingTest" Grid.Row="0" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="BindingTestText" Grid.Row="0" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"
                                    FontWeight="SemiBold" FontSize="16"/>
 
-                        <TextBlock x:Name="LabelMappingBehavior" Grid.Row="1" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                        <TextBlock x:Name="MappingBehaviorText" Grid.Row="1" Grid.Column="1" Style="{StaticResource InfoValueStyle}"
+                        <TextBlock x:Name="LabelMappingBehavior" Grid.Row="1" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="MappingBehaviorText" Grid.Row="1" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"
                                    FontWeight="SemiBold" FontSize="16"/>
 
-                        <TextBlock x:Name="LabelFilteringBehavior" Grid.Row="2" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                        <TextBlock x:Name="FilteringBehaviorText" Grid.Row="2" Grid.Column="1" Style="{StaticResource InfoValueStyle}"
+                        <TextBlock x:Name="LabelFilteringBehavior" Grid.Row="2" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="FilteringBehaviorText" Grid.Row="2" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"
                                    FontWeight="SemiBold" FontSize="16"/>
 
-                        <TextBlock x:Name="LabelRfc5780Local" Grid.Row="3" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                        <TextBlock x:Name="Rfc5780LocalText" Grid.Row="3" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                        <TextBlock x:Name="LabelRfc5780Local" Grid.Row="3" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="Rfc5780LocalText" Grid.Row="3" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
 
-                        <TextBlock x:Name="LabelRfc5780Public" Grid.Row="4" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                        <TextBlock x:Name="Rfc5780PublicText" Grid.Row="4" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                        <TextBlock x:Name="LabelRfc5780Public" Grid.Row="4" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="Rfc5780PublicText" Grid.Row="4" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
 
-                        <TextBlock x:Name="LabelOtherAddress" Grid.Row="5" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                        <TextBlock x:Name="OtherAddressText" Grid.Row="5" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                        <TextBlock x:Name="LabelOtherAddress" Grid.Row="5" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                        <TextBlock x:Name="OtherAddressText" Grid.Row="5" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
                     </Grid>
                 </StackPanel>
             </Border>

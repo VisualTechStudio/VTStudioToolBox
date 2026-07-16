@@ -13,29 +13,29 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,24">
-                <TextBlock x:Name="PageTitle" Style="{StaticResource PageTitleStyle}"/>
-                <TextBlock x:Name="PageSubtitle" Style="{StaticResource PageSubtitleStyle}"/>
+                <TextBlock x:Name="PageTitle" Style="{ThemeResource PageTitleStyle}"/>
+                <TextBlock x:Name="PageSubtitle" Style="{ThemeResource PageSubtitleStyle}"/>
             </StackPanel>
 
             <StackPanel Grid.Row="1" Spacing="24">
                 <!-- 硬件检测 -->
                 <StackPanel Spacing="12">
-                    <TextBlock x:Name="HardwareHeader" Foreground="{StaticResource SectionBlueBrush}"
-                               Style="{StaticResource SectionHeaderStyle}"/>
+                    <TextBlock x:Name="HardwareHeader" Foreground="{ThemeResource SectionBlueBrush}"
+                               Style="{ThemeResource SectionHeaderStyle}"/>
                     <StackPanel x:Name="HardwareTools" Spacing="12"/>
                 </StackPanel>
 
                 <!-- 磁盘工具 -->
                 <StackPanel Spacing="12">
-                    <TextBlock x:Name="DiskHeader" Foreground="{StaticResource SectionGreenBrush}"
-                               Style="{StaticResource SectionHeaderStyle}"/>
+                    <TextBlock x:Name="DiskHeader" Foreground="{ThemeResource SectionGreenBrush}"
+                               Style="{ThemeResource SectionHeaderStyle}"/>
                     <StackPanel x:Name="DiskTools" Spacing="12"/>
                 </StackPanel>
 
                 <!-- 系统工具 -->
                 <StackPanel Spacing="12">
-                    <TextBlock x:Name="SystemHeader" Foreground="{StaticResource SectionOrangeBrush}"
-                               Style="{StaticResource SectionHeaderStyle}"/>
+                    <TextBlock x:Name="SystemHeader" Foreground="{ThemeResource SectionOrangeBrush}"
+                               Style="{ThemeResource SectionHeaderStyle}"/>
                     <StackPanel x:Name="SystemTools" Spacing="12"/>
                 </StackPanel>
             </StackPanel>

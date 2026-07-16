@@ -28,6 +28,13 @@ namespace VTStudioToolBox.Views
 
             this.Loaded += AndroidPage_Loaded;
             this.Unloaded += AndroidPage_Unloaded;
+            ThemeHelper.ThemeChanged += OnThemeChanged;
+        }
+
+        private void OnThemeChanged()
+        {
+            // Force rebuild device list with new theme brushes
+            _lastAppliedHash = "";
         }
 
         private void UpdateLanguage()
@@ -146,13 +153,13 @@ namespace VTStudioToolBox.Views
             {
                 Text = mainLabel,
                 FontSize = 14,
-                Foreground = (Brush)Application.Current.Resources["PrimaryTextBrush"]
+                Foreground = ThemeHelper.GetBrush("PrimaryTextBrush")
             });
             infoPanel.Children.Add(new TextBlock
             {
                 Text = subLabel,
                 FontSize = 12,
-                Foreground = (Brush)Application.Current.Resources["SecondaryTextBrush"],
+                Foreground = ThemeHelper.GetBrush("SecondaryTextBrush"),
                 Margin = new Thickness(0, 2, 0, 0)
             });
             grid.Children.Add(infoPanel);

@@ -39,9 +39,20 @@ namespace VTStudioToolBox
 
             NavView.SelectionChanged += OnNavigationSelectionChanged;
             this.Activated += OnWindowActivated;
+            ThemeHelper.ThemeChanged += OnThemeChanged;
 
             // Update language after NavView is fully loaded
             NavView.Loaded += (s, e) => UpdateLanguage();
+        }
+
+        private string _currentPageKey = "dashboard";
+
+        private void OnThemeChanged()
+        {
+            // Force NavView to pick up the new theme
+            NavView.RequestedTheme = ThemeHelper.CurrentTheme;
+            // Refresh current page to pick up new theme brushes
+            NavigateTo(_currentPageKey);
         }
 
         private void UpdateLanguage()
@@ -110,6 +121,7 @@ namespace VTStudioToolBox
             Logger.Dev("MainWindow", "Starting normal app flow");
             EulaOverlay.Visibility = Visibility.Collapsed;
             NavView.Visibility = Visibility.Visible;
+            NavView.RequestedTheme = ThemeHelper.CurrentTheme;
             NavigateTo("dashboard");
         }
 
@@ -141,7 +153,7 @@ namespace VTStudioToolBox
         {
             try
             {
-                SystemBackdrop = new DesktopAcrylicBackdrop();
+                SystemBackdrop = new MicaBackdrop();
             }
             catch { }
         }
@@ -193,6 +205,7 @@ namespace VTStudioToolBox
         {
             if (_pageRoutes.TryGetValue(pageKey, out var pageType))
             {
+                _currentPageKey = pageKey;
                 string displayName = pageKey switch
                 {
                     "dashboard" => "Dashboard",

@@ -8,7 +8,7 @@
     <Grid x:Name="RootGrid" Background="Transparent">
 
         <Grid x:Name="EulaOverlay"
-              Background="#CC1F1F1F"
+              Background="{ThemeResource EulaOverlayBrush}"
               Visibility="Collapsed"
               Canvas.ZIndex="100">
 
@@ -20,13 +20,13 @@
                 <TextBlock Text="VTStudio ToolBox"
                            FontSize="56"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource PrimaryTextBrush}"
+                           Foreground="{ThemeResource PrimaryTextBrush}"
                            HorizontalAlignment="Center"
                            TextAlignment="Center"/>
 
                 <TextBlock x:Name="EulaText"
                            FontSize="20"
-                           Foreground="{StaticResource TertiaryTextBrush}"
+                           Foreground="{ThemeResource TertiaryTextBrush}"
                            HorizontalAlignment="Center"
                            TextWrapping="Wrap"
                            TextAlignment="Center"/>
@@ -42,7 +42,7 @@
             </StackPanel>
         </Grid>
 
-        <Grid Background="{StaticResource WindowBackgroundBrush}"/>
+        <Grid Background="{ThemeResource WindowBackgroundBrush}"/>
 
         <muxc:NavigationView x:Name="NavView"
                              PaneDisplayMode="Left"

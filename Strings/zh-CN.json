@@ -1,4 +1,4 @@
-﻿{
+{
     "_name": "简体中文",
     "NavDashboard": "仪表盘",
     "NavUtilities": "实用工具",
@@ -105,6 +105,9 @@
     "SectionChangelog": "更新日志",
     "ButtonOK": "确定",
     "LabelLanguage": "语言",
+    "LabelTheme": "主题",
+    "ThemeDark": "深色",
+    "ThemeLight": "浅色",
     "LangZhCN": "简体中文",
     "LangEnUS": "English",
     "DialogTitle_Failure": "操作失败",

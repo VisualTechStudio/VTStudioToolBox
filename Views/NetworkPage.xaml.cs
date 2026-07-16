@@ -83,10 +83,10 @@ namespace VTStudioToolBox.Views
                     NatTypeText.Foreground = rfc3489Result.NatType switch
                     {
                         NatType.OpenInternet or NatType.FullCone
-                            => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SectionGreenBrush"],
+                            => ThemeHelper.GetBrush("SectionGreenBrush"),
                         NatType.Symmetric or NatType.UdpBlocked or NatType.UnsupportedServer or NatType.Unknown
-                            => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["DangerRedBrush"],
-                        _ => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SectionOrangeBrush"]
+                            => ThemeHelper.GetBrush("DangerRedBrush"),
+                        _ => ThemeHelper.GetBrush("SectionOrangeBrush")
                     };
 
                     Rfc3489ResultBorder.Visibility = Visibility.Visible;
@@ -102,28 +102,28 @@ namespace VTStudioToolBox.Views
                     BindingTestText.Foreground = rfc5780Result.BindingTestResult switch
                     {
                         BindingTestResult.Success
-                            => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SectionGreenBrush"],
+                            => ThemeHelper.GetBrush("SectionGreenBrush"),
                         BindingTestResult.Fail
-                            => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["DangerRedBrush"],
-                        _ => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SectionOrangeBrush"]
+                            => ThemeHelper.GetBrush("DangerRedBrush"),
+                        _ => ThemeHelper.GetBrush("SectionOrangeBrush")
                     };
 
                     MappingBehaviorText.Foreground = rfc5780Result.MappingBehavior switch
                     {
                         MappingBehavior.Direct or MappingBehavior.EndpointIndependent
-                            => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SectionGreenBrush"],
+                            => ThemeHelper.GetBrush("SectionGreenBrush"),
                         MappingBehavior.Fail or MappingBehavior.UnsupportedServer
-                            => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["DangerRedBrush"],
-                        _ => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SectionOrangeBrush"]
+                            => ThemeHelper.GetBrush("DangerRedBrush"),
+                        _ => ThemeHelper.GetBrush("SectionOrangeBrush")
                     };
 
                     FilteringBehaviorText.Foreground = rfc5780Result.FilteringBehavior switch
                     {
                         FilteringBehavior.EndpointIndependent
-                            => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SectionGreenBrush"],
+                            => ThemeHelper.GetBrush("SectionGreenBrush"),
                         FilteringBehavior.UnsupportedServer
-                            => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["DangerRedBrush"],
-                        _ => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SectionOrangeBrush"]
+                            => ThemeHelper.GetBrush("DangerRedBrush"),
+                        _ => ThemeHelper.GetBrush("SectionOrangeBrush")
                     };
 
                     Rfc5780ResultBorder.Visibility = Visibility.Visible;
@@ -137,7 +137,7 @@ namespace VTStudioToolBox.Views
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     NatTypeText.Text = $"Test failed: {ex.Message}";
-                    NatTypeText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["DangerRedBrush"];
+                    NatTypeText.Foreground = ThemeHelper.GetBrush("DangerRedBrush");
                     Rfc3489ResultBorder.Visibility = Visibility.Visible;
                 });
             }

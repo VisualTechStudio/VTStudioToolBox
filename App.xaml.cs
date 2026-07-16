@@ -20,6 +20,7 @@ namespace VTStudioToolBox
             Logger.Info("App", "OnLaunched");
 
             LanguageHelper.Initialize();
+            ThemeHelper.Initialize();
 
             FirewallHelper.EnsureFirewallRule();
 
@@ -28,7 +29,7 @@ namespace VTStudioToolBox
 
             if (m_window.Content is FrameworkElement rootElement)
             {
-                rootElement.RequestedTheme = ElementTheme.Dark;
+                rootElement.RequestedTheme = ThemeHelper.CurrentTheme;
             }
 
             m_window.Activate();

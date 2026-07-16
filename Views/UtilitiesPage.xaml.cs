@@ -50,6 +50,18 @@ namespace VTStudioToolBox.Views
             this.InitializeComponent();
             UpdateLanguage();
             this.Loaded += UtilitiesPage_Loaded;
+            ThemeHelper.ThemeChanged += OnThemeChanged;
+        }
+
+        private void OnThemeChanged()
+        {
+            // Rebuild tool lists with new theme brushes
+            HardwareTools.Children.Clear();
+            DiskTools.Children.Clear();
+            SystemTools.Children.Clear();
+            BuildToolList(HardwareTools, HardwareToolList);
+            BuildToolList(DiskTools, DiskToolList);
+            BuildToolList(SystemTools, SystemToolList);
         }
 
         private void UpdateLanguage()
@@ -77,7 +89,7 @@ namespace VTStudioToolBox.Views
             {
                 var card = new Border
                 {
-                    Background = (WinUIBrush)Application.Current.Resources["CardBackgroundBrush"],
+                    Background = ThemeHelper.GetBrush("CardBackgroundBrush"),
                     CornerRadius = new CornerRadius(12),
                     Padding = new Thickness(20),
                     Margin = new Thickness(0, 0, 0, 12)
@@ -104,13 +116,13 @@ namespace VTStudioToolBox.Views
                     Text = tool.Name,
                     FontSize = 18,
                     FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                    Foreground = (WinUIBrush)Application.Current.Resources["PrimaryTextBrush"]
+                    Foreground = ThemeHelper.GetBrush("PrimaryTextBrush")
                 });
                 infoPanel.Children.Add(new TextBlock
                 {
                     Text = LanguageHelper.GetString(tool.Description),
                     FontSize = 14,
-                    Foreground = (WinUIBrush)Application.Current.Resources["SecondaryTextBrush"],
+                    Foreground = ThemeHelper.GetBrush("SecondaryTextBrush"),
                     Margin = new Thickness(0, 4, 0, 0)
                 });
                 Grid.SetColumn(infoPanel, 1);

@@ -27,7 +27,18 @@ namespace VTStudioToolBox.Views
             // Initialize language selector
             InitLanguageSettings();
 
+            // Initialize theme selector
+            InitThemeSettings();
+
+            ThemeHelper.ThemeChanged += OnThemeChanged;
             _isInitializing = false;
+        }
+
+        private void OnThemeChanged()
+        {
+            // Rebuild contributions section with new theme brushes
+            ContributionsStack.Children.Clear();
+            BuildContributionsSection();
         }
 
         private void UpdateLanguage()
@@ -35,6 +46,9 @@ namespace VTStudioToolBox.Views
             PageTitle.Text = LanguageHelper.GetString("SettingsTitle");
             PageSubtitle.Text = LanguageHelper.GetString("SettingsSubtitle");
             LanguageHeader.Text = LanguageHelper.GetString("LabelLanguage");
+            ThemeHeader.Text = LanguageHelper.GetString("LabelTheme");
+            ThemeDarkOption.Content = LanguageHelper.GetString("ThemeDark");
+            ThemeLightOption.Content = LanguageHelper.GetString("ThemeLight");
             LogHeader.Text = LanguageHelper.GetString("SectionLog");
             LogLevelLabel.Text = LanguageHelper.GetString("LabelLogLevel");
             FeedbackButtonText.Text = LanguageHelper.GetString("ButtonFeedback");
@@ -99,6 +113,32 @@ namespace VTStudioToolBox.Views
                 if (lang.Key == currentLang)
                 {
                     LanguageComboBox.SelectedItem = item;
+                }
+            }
+        }
+
+        private void InitThemeSettings()
+        {
+            if (ThemeHelper.CurrentTheme == Microsoft.UI.Xaml.ElementTheme.Dark)
+            {
+                ThemeComboBox.SelectedItem = ThemeDarkOption;
+            }
+            else
+            {
+                ThemeComboBox.SelectedItem = ThemeLightOption;
+            }
+        }
+
+        private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isInitializing) return;
+            if (ThemeComboBox == null || ThemeComboBox.SelectedItem == null) return;
+
+            if (ThemeComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                if (Enum.TryParse<Microsoft.UI.Xaml.ElementTheme>(tag, out var theme))
+                {
+                    ThemeHelper.ApplyTheme(theme);
                 }
             }
         }
@@ -195,7 +235,7 @@ namespace VTStudioToolBox.Views
                     Text = LanguageHelper.GetString("DeveloperProjectCount", developer, count),
                     FontSize = 13,
                     FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                    Foreground = (Brush)Application.Current.Resources["DimTextBrush"],
+                    Foreground = ThemeHelper.GetBrush("DimTextBrush"),
                 },
             };
         }
@@ -227,14 +267,14 @@ namespace VTStudioToolBox.Views
                             {
                                 Text = project,
                                 FontSize = 13,
-                                Foreground = (Brush)Application.Current.Resources["TertiaryTextBrush"],
+                                Foreground = ThemeHelper.GetBrush("TertiaryTextBrush"),
                                 VerticalAlignment = VerticalAlignment.Center,
                             },
                             new TextBlock
                             {
                                 Text = indented ? "" : $"— {developer}",
                                 FontSize = 12,
-                                Foreground = (Brush)Application.Current.Resources["DimTextBrush"],
+                                Foreground = ThemeHelper.GetBrush("DimTextBrush"),
                                 VerticalAlignment = VerticalAlignment.Center,
                             },
                         },

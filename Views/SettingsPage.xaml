@@ -13,8 +13,8 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,24">
-                <TextBlock x:Name="PageTitle" Style="{StaticResource PageTitleStyle}"/>
-                <TextBlock x:Name="PageSubtitle" Style="{StaticResource PageSubtitleStyle}"/>
+                <TextBlock x:Name="PageTitle" Style="{ThemeResource PageTitleStyle}"/>
+                <TextBlock x:Name="PageSubtitle" Style="{ThemeResource PageSubtitleStyle}"/>
             </StackPanel>
 
             <Grid Grid.Row="1">
@@ -23,13 +23,14 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- 语言设置 -->
-                <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}">
+                <Border Grid.Row="0" Style="{ThemeResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock x:Name="LanguageHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
                         <ComboBox x:Name="LanguageComboBox"
                                   MinWidth="140"
                                   VerticalAlignment="Center"
@@ -37,15 +38,30 @@
                     </StackPanel>
                 </Border>
 
+                <!-- 主题设置 -->
+                <Border Grid.Row="1" Style="{ThemeResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock x:Name="ThemeHeader" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+                        <ComboBox x:Name="ThemeComboBox"
+                                  MinWidth="140"
+                                  VerticalAlignment="Center"
+                                  SelectionChanged="ThemeComboBox_SelectionChanged">
+                            <ComboBoxItem x:Name="ThemeDarkOption" Tag="Dark"/>
+                            <ComboBoxItem x:Name="ThemeLightOption" Tag="Light"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
                 <!-- 日志设置 -->
-                <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}">
+                <Border Grid.Row="2" Style="{ThemeResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock x:Name="LogHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
 
                         <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                             <TextBlock x:Name="LogLevelLabel" FontSize="12"
-                                       Foreground="{StaticResource SecondaryTextBrush}"
+                                       Foreground="{ThemeResource SecondaryTextBrush}"
                                        VerticalAlignment="Center"/>
                             <ComboBox x:Name="LogLevelComboBox"
                                       Width="120"
@@ -68,20 +84,20 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}">
+                <Border Grid.Row="3" Style="{ThemeResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock x:Name="AboutHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
 
                         <StackPanel Spacing="8" Margin="0,0,0,16">
                             <TextBlock Text="VTStudio ToolBox" FontSize="14"
-                                       Foreground="{StaticResource PrimaryTextBrush}"/>
+                                       Foreground="{ThemeResource PrimaryTextBrush}"/>
                             <TextBlock x:Name="VersionTextBlock" FontSize="12"
-                                       Foreground="{StaticResource SecondaryTextBrush}"/>
+                                       Foreground="{ThemeResource SecondaryTextBrush}"/>
                             <TextBlock x:Name="CopyrightText"
-                                       FontSize="12" Foreground="{StaticResource SecondaryTextBrush}"/>
+                                       FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}"/>
                             <TextBlock x:Name="GPLStatement"
-                                       FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+                                       FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Spacing="4">
@@ -108,16 +124,16 @@
                             </Button>
                             <Button x:Name="RevokeEulaButton" Content="撤销同意用户协议"
                                     Click="RevokeEulaButton_Click" FontSize="12"
-                                    Foreground="{StaticResource DangerRedBrush}"
+                                    Foreground="{ThemeResource DangerRedBrush}"
                                     Background="Transparent"
-                                    BorderBrush="{StaticResource DangerRedBrush}"
+                                    BorderBrush="{ThemeResource DangerRedBrush}"
                                     BorderThickness="1" Padding="12,6"/>
                         </StackPanel>
 
-                        <Border Height="1" Background="{StaticResource DividerBrush}" Margin="0,16,0,12"/>
+                        <Border Height="1" Background="{ThemeResource DividerBrush}" Margin="0,16,0,12"/>
 
                         <TextBlock x:Name="ContributorsHeader" FontSize="16" FontWeight="SemiBold"
-                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>
 
                         <StackPanel Spacing="20">
                             <Grid ColumnSpacing="16">
@@ -130,15 +146,15 @@
                                         <ImageBrush ImageSource="/Assets/dwg.png" Stretch="UniformToFill"/>
                                     </Ellipse.Fill>
                                     <Ellipse.Stroke>
-                                        <SolidColorBrush Color="White" Opacity="0.3"/>
+                                        <ThemeResource ResourceKey="AvatarStrokeBrush"/>
                                     </Ellipse.Stroke>
                                     <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
                                 </Ellipse>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
                                     <TextBlock Text="KL_Xydwg01" FontSize="15" FontWeight="SemiBold"
-                                               Foreground="{StaticResource PrimaryTextBrush}"/>
+                                               Foreground="{ThemeResource PrimaryTextBrush}"/>
                                     <TextBlock x:Name="ContributorRole_Dwg"
-                                               FontSize="12" Foreground="{StaticResource TertiaryTextBrush}" TextWrapping="Wrap"/>
+                                               FontSize="12" Foreground="{ThemeResource TertiaryTextBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Grid>
 
@@ -152,15 +168,15 @@
                                         <ImageBrush ImageSource="/Assets/xcy.png" Stretch="UniformToFill"/>
                                     </Ellipse.Fill>
                                     <Ellipse.Stroke>
-                                        <SolidColorBrush Color="White" Opacity="0.3"/>
+                                        <ThemeResource ResourceKey="AvatarStrokeBrush"/>
                                     </Ellipse.Stroke>
                                     <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
                                 </Ellipse>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
                                     <TextBlock Text="Shayne Hui" FontSize="15" FontWeight="SemiBold"
-                                               Foreground="{StaticResource PrimaryTextBrush}"/>
+                                               Foreground="{ThemeResource PrimaryTextBrush}"/>
                                     <TextBlock x:Name="ContributorRole_Xcy"
-                                               FontSize="12" Foreground="{StaticResource TertiaryTextBrush}" TextWrapping="Wrap"/>
+                                               FontSize="12" Foreground="{ThemeResource TertiaryTextBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Grid>
 
@@ -174,37 +190,37 @@
                                         <ImageBrush ImageSource="/Assets/kpdw.png" Stretch="UniformToFill"/>
                                     </Ellipse.Fill>
                                     <Ellipse.Stroke>
-                                        <SolidColorBrush Color="White" Opacity="0.3"/>
+                                        <ThemeResource ResourceKey="AvatarStrokeBrush"/>
                                     </Ellipse.Stroke>
                                     <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
                                 </Ellipse>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
                                     <TextBlock Text="月" FontSize="15" FontWeight="SemiBold"
-                                               Foreground="{StaticResource PrimaryTextBrush}"/>
+                                               Foreground="{ThemeResource PrimaryTextBrush}"/>
                                     <TextBlock x:Name="ContributorRole_Yue"
-                                               FontSize="12" Foreground="{StaticResource TertiaryTextBrush}" TextWrapping="Wrap"/>
+                                               FontSize="12" Foreground="{ThemeResource TertiaryTextBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
 
-                        <Border Height="1" Background="{StaticResource DividerBrush}" Margin="0,16,0,12"/>
+                        <Border Height="1" Background="{ThemeResource DividerBrush}" Margin="0,16,0,12"/>
 
                         <TextBlock x:Name="ContributionsHeader" FontSize="16" FontWeight="SemiBold"
-                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>
                         <TextBlock x:Name="ContributionsIntro"
-                                   FontSize="12" Foreground="{StaticResource FaintTextBrush}"
+                                   FontSize="12" Foreground="{ThemeResource FaintTextBrush}"
                                    Margin="0,0,0,12" TextWrapping="Wrap"/>
                         <StackPanel x:Name="ContributionsStack" Spacing="8"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Row="3" Style="{StaticResource CardBorderStyle}">
+                <Border Grid.Row="4" Style="{ThemeResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock x:Name="ChangelogHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>
                         <StackPanel Spacing="8">
                             <TextBlock x:Name="LogTextBlock" FontSize="12"
-                                       Foreground="{StaticResource SecondaryTextBrush}"/>
+                                       Foreground="{ThemeResource SecondaryTextBrush}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>

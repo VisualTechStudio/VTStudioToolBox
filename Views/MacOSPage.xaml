@@ -15,8 +15,8 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,24">
-                <TextBlock x:Name="PageTitle" Style="{StaticResource PageTitleStyle}"/>
-                <TextBlock x:Name="PageSubtitle" Style="{StaticResource PageSubtitleStyle}"/>
+                <TextBlock x:Name="PageTitle" Style="{ThemeResource PageTitleStyle}"/>
+                <TextBlock x:Name="PageSubtitle" Style="{ThemeResource PageSubtitleStyle}"/>
             </StackPanel>
 
             <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,0,0,24">
@@ -48,7 +48,7 @@
 
             <TextBlock x:Name="TxtStatus"
                        Grid.Row="2"
-                       FontSize="14" Foreground="{StaticResource FaintTextBrush}" Margin="0,0,0,16"/>
+                       FontSize="14" Foreground="{ThemeResource FaintTextBrush}" Margin="0,0,0,16"/>
 
             <muxc:ListView x:Name="DmgListView"
                            Grid.Row="2"
@@ -75,7 +75,7 @@
                 </muxc:ListView.ItemContainerStyle>
                 <muxc:ListView.ItemTemplate>
                     <DataTemplate x:DataType="local:DmgItem">
-                        <Border Background="{StaticResource CardBackgroundBrush}"
+                        <Border Background="{ThemeResource CardBackgroundBrush}"
                                 CornerRadius="12" Padding="16" Margin="0,0,0,4">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -86,13 +86,13 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                     <TextBlock FontSize="16" FontWeight="SemiBold"
-                                               Foreground="{StaticResource PrimaryTextBrush}">
+                                               Foreground="{ThemeResource PrimaryTextBrush}">
                                         <Run Text="{x:Bind Title}"/>
-                                        <Run Text=" " Foreground="{StaticResource DimTextBrush}"/>
+                                        <Run Text=" " Foreground="{ThemeResource DimTextBrush}"/>
                                         <Run Text="{x:Bind Version}" FontWeight="Normal"
-                                             Foreground="{StaticResource MutedTextBrush}"/>
+                                             Foreground="{ThemeResource MutedTextBrush}"/>
                                     </TextBlock>
-                                    <TextBlock FontSize="13" Foreground="{StaticResource MutedTextBrush}" Margin="0,4,0,0">
+                                    <TextBlock FontSize="13" Foreground="{ThemeResource MutedTextBrush}" Margin="0,4,0,0">
                                         <Run Text="{x:Bind Version}"/>
                                         <Run Text=" | "/>
                                         <Run Text="{x:Bind Build}"/>
@@ -102,7 +102,7 @@
                                 </StackPanel>
                                 <TextBlock Grid.Column="1"
                                            Text="{x:Bind Date}" FontSize="13"
-                                           Foreground="{StaticResource DimTextBrush}"
+                                           Foreground="{ThemeResource DimTextBrush}"
                                            VerticalAlignment="Center" Margin="12,0"/>
                                 <Button x:Name="BtnDownload" Grid.Column="2"
                                         Tag="{x:Bind}" Click="BtnDownloadDmg_Click"

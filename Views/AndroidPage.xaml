@@ -14,15 +14,15 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,24">
-                <TextBlock x:Name="PageTitle" Style="{StaticResource PageTitleStyle}"/>
-                <TextBlock x:Name="PageSubtitle" Style="{StaticResource PageSubtitleStyle}"/>
+                <TextBlock x:Name="PageTitle" Style="{ThemeResource PageTitleStyle}"/>
+                <TextBlock x:Name="PageSubtitle" Style="{ThemeResource PageSubtitleStyle}"/>
             </StackPanel>
 
             <!-- ADB Status Card -->
-            <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}">
+            <Border Grid.Row="1" Style="{ThemeResource CardBorderStyle}">
                 <StackPanel>
                     <TextBlock x:Name="AdbStatusHeader" FontSize="18" FontWeight="SemiBold"
-                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+                               Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>
                     <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -30,25 +30,25 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock x:Name="AdbStatusText" Grid.Column="0"
                                    FontSize="14" FontWeight="SemiBold"
-                                   Foreground="{StaticResource PrimaryTextBrush}"
+                                   Foreground="{ThemeResource PrimaryTextBrush}"
                                    VerticalAlignment="Center"/>
                         <TextBlock x:Name="AdbPidText" Grid.Column="1"
-                                   FontSize="12" Foreground="{StaticResource SecondaryTextBrush}"
+                                   FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}"
                                    VerticalAlignment="Center"/>
                     </Grid>
                     <TextBlock x:Name="AdbVersionText" FontSize="12"
-                               Foreground="{StaticResource SecondaryTextBrush}"/>
+                               Foreground="{ThemeResource SecondaryTextBrush}"/>
                 </StackPanel>
             </Border>
 
             <!-- Devices Card -->
-            <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}">
+            <Border Grid.Row="2" Style="{ThemeResource CardBorderStyle}">
                 <StackPanel>
                     <TextBlock x:Name="DevicesHeader" FontSize="18" FontWeight="SemiBold"
-                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+                               Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>
                     <ContentControl x:Name="DeviceListHost"/>
                     <TextBlock x:Name="NoDevicesText" FontSize="13" FontStyle="Italic"
-                               Foreground="{StaticResource SecondaryTextBrush}"
+                               Foreground="{ThemeResource SecondaryTextBrush}"
                                Margin="0,4,0,0" Visibility="Collapsed"/>
                 </StackPanel>
             </Border>
@@ -62,10 +62,10 @@
 
                 <!-- Device Info Card -->
                 <Grid Grid.Column="0">
-                    <Border Style="{StaticResource CardBorderStyle}">
+                    <Border Style="{ThemeResource CardBorderStyle}">
                         <StackPanel>
                             <TextBlock x:Name="DeviceInfoHeader" FontSize="18" FontWeight="SemiBold"
-                                       Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+                                       Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -81,28 +81,28 @@
                                 </Grid.RowDefinitions>
 
                                 <!-- Row 0: 设备 -->
-                                <TextBlock x:Name="LabelDevice" Grid.Row="0" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                                <TextBlock x:Name="ValueDevice" Grid.Row="0" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                                <TextBlock x:Name="LabelDevice" Grid.Row="0" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                                <TextBlock x:Name="ValueDevice" Grid.Row="0" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
 
                                 <!-- Row 1: 内核 -->
-                                <TextBlock x:Name="LabelKernel" Grid.Row="1" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                                <TextBlock x:Name="ValueKernel" Grid.Row="1" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                                <TextBlock x:Name="LabelKernel" Grid.Row="1" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                                <TextBlock x:Name="ValueKernel" Grid.Row="1" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
 
                                 <!-- Row 2: 硬件 -->
-                                <TextBlock x:Name="LabelHardware" Grid.Row="2" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                                <TextBlock x:Name="ValueHardware" Grid.Row="2" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                                <TextBlock x:Name="LabelHardware" Grid.Row="2" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                                <TextBlock x:Name="ValueHardware" Grid.Row="2" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
 
                                 <!-- Row 3: OS -->
-                                <TextBlock x:Name="LabelOS" Grid.Row="3" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                                <TextBlock x:Name="ValueOS" Grid.Row="3" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                                <TextBlock x:Name="LabelOS" Grid.Row="3" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                                <TextBlock x:Name="ValueOS" Grid.Row="3" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
 
                                 <!-- Row 4: 电量 -->
-                                <TextBlock x:Name="LabelBattery" Grid.Row="4" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                                <TextBlock x:Name="ValueBattery" Grid.Row="4" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                                <TextBlock x:Name="LabelBattery" Grid.Row="4" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                                <TextBlock x:Name="ValueBattery" Grid.Row="4" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
 
                                 <!-- Row 5: 分辨率 -->
-                                <TextBlock x:Name="LabelResolution" Grid.Row="5" Grid.Column="0" Style="{StaticResource InfoLabelStyle}"/>
-                                <TextBlock x:Name="ValueResolution" Grid.Row="5" Grid.Column="1" Style="{StaticResource InfoValueStyle}"/>
+                                <TextBlock x:Name="LabelResolution" Grid.Row="5" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
+                                <TextBlock x:Name="ValueResolution" Grid.Row="5" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -111,14 +111,14 @@
                 </Grid>
 
                 <!-- Quick Actions Card -->
-                <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
+                <Border Grid.Column="1" Style="{ThemeResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock x:Name="ActionsHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>
 
                         <!-- Reboot Section -->
                         <TextBlock x:Name="RebootSectionHeader" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{StaticResource SecondaryTextBrush}" Margin="0,0,0,6"/>
+                                   Foreground="{ThemeResource SecondaryTextBrush}" Margin="0,0,0,6"/>
                         <Grid ColumnSpacing="6" RowSpacing="6">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -165,7 +165,7 @@
 
                         <!-- Screen Section -->
                         <TextBlock x:Name="ScreenSectionHeader" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{StaticResource SecondaryTextBrush}" Margin="0,12,0,6"/>
+                                   Foreground="{ThemeResource SecondaryTextBrush}" Margin="0,12,0,6"/>
                         <Grid ColumnSpacing="6">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
