@@ -181,9 +181,16 @@ namespace VTStudioToolBox.Views
             return tapArea;
         }
 
+        private void SetOverlays(bool visible)
+        {
+            var vis = visible ? Visibility.Visible : Visibility.Collapsed;
+            DeviceOverlay.Visibility = vis;
+            ActionsOverlay.Visibility = vis;
+        }
+
         private void ClearDeviceInfo()
         {
-            DeviceOverlay.Visibility = Visibility.Visible;
+            SetOverlays(true);
             ValueDevice.Text = "--";
             ValueKernel.Text = "--";
             ValueHardware.Text = "--";
@@ -194,7 +201,7 @@ namespace VTStudioToolBox.Views
 
         private async Task ShowDeviceInfo(string serial)
         {
-            DeviceOverlay.Visibility = Visibility.Collapsed;
+            SetOverlays(false);
 
             var adbPath = System.IO.Path.Combine(AppContext.BaseDirectory, "platform-tools", "adb.exe");
             var tasks = new List<Task<(int exitCode, string output)>>();

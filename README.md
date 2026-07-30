@@ -12,6 +12,20 @@
 
 ## 功能特性
 
+### 用户认证系统
+
+支持通过本地 Loopback 回调在系统默认浏览器中完成第三方登录：
+
+平台 | 协议 | 说明
+---- | ---- | ----
+GitHub | OAuth 2.0 + client_secret | 用户头像、邮箱
+Microsoft | OAuth 2.0 + PKCE | 用户头像（Graph API）、邮箱
+Steam | OpenID 2.0 | 用户头像、昵称
+
+- 登录状态本地持久化，重启自动恢复
+- 侧边栏底部显示用户头像与登录状态
+- 支持一键退出登录
+
 ### 系统信息检测模块
 
 检测类别 | 检测项 | 实现方式
@@ -38,6 +52,24 @@ RFC 5780 | 过滤行为（Endpoint Independent / Address Dependent / Address and
 - 并行检测：RFC 3489与RFC 5780通过Task.WhenAll并行执行，缩短总耗时
 - 支持9个预置STUN服务器，支持手动输入自定义服务器地址
 - DNS-over-HTTPS解析，支持系统DNS回退
+
+### 主题系统
+
+模式 | 说明
+---- | ----
+跟随系统 | 自动检测 Windows 浅色/深色模式，实时跟随切换
+深色模式 | 手动固定深色主题
+浅色模式 | 手动固定浅色主题
+
+- 通过 `Windows.UI.ViewManagement.UISettings.ColorValuesChanged` 监听系统主题变化
+- 侧边栏、页面、Flyout 均支持主题热切换
+- 标题栏按钮颜色自动适配
+
+### 隐私与数据
+
+- 硬件信息采集仅收集 CPU/GPU/RAM/OS 型号，**不采集**磁盘序列号、MAC 地址、主机名、用户名
+- 匿名设备 GUID 持久化存储于本地
+- 用户体验改进计划（预留，默认关闭）
 
 ### 性能优化特性
 
@@ -83,15 +115,27 @@ VTStudioToolBox/
 │   ├── dwg.png
 │   ├── kpdw.png
 │   └── xcy.png
+├── Auth/                      # 认证模块
+│   ├── IAuthService.cs          # 认证服务接口
+│   ├── IHardwareCollector.cs    # 硬件采集接口
+│   ├── IAnalyticsService.cs     # 数据上报接口
+│   └── AuthManager.cs           # OAuth/OpenID 认证实现
 ├── Helpers/                   # 辅助工具类
 │   ├── DnsResolver.cs          # DNS-over-HTTPS解析器
 │   ├── EulaHelper.cs           # EULA协议管理
 │   ├── FileCacheManager.cs     # 文件缓存管理器
 │   ├── FirewallHelper.cs       # Windows防火墙规则管理
+│   ├── LanguageHelper.cs       # 多语言管理
 │   ├── Logger.cs               # 文件日志记录器
-│   └── SystemInfo.cs           # 系统信息数据模型
+│   ├── SystemInfo.cs           # 系统信息数据模型
+│   ├── ThemeHelper.cs          # 主题管理（含跟随系统）
+│   └── WindowHelper.cs         # 窗口辅助类
 ├── Models/                    # 业务数据模型
-│   └── Projectltem.cs          # 项目项抽象模型
+│   ├── AnalyticsEvent.cs       # 分析事件模型
+│   ├── HardwareInfo.cs         # 硬件信息模型
+│   ├── Projectltem.cs          # 项目项抽象模型
+│   ├── ToolInfo.cs             # 工具信息模型
+│   └── UserIdentity.cs         # 用户身份模型
 ├── Network/                   # 网络检测模块
 │   ├── NatType.cs              # NAT类型/映射行为/过滤行为枚举
 │   ├── StunAttribute.cs        # STUN属性解析（RFC 3489/5389）
@@ -99,12 +143,19 @@ VTStudioToolBox/
 │   ├── Stun5780Client.cs       # RFC 5780 NAT行为发现状态机
 │   ├── StunMessage.cs          # STUN消息序列化/反序列化
 │   └── StunServer.cs           # STUN服务器地址解析
-├── Properties/                # 项目配置
-│   ├── PublishProfiles/        # MSIX发布配置
-│   │   ├── win-arm64.pubxml
-│   │   ├── win-x64.pubxml
-│   │   └── win-x86.pubxml
-│   └── launchSettings.json     # 开发环境启动设置
+├── Services/                  # 业务服务
+│   ├── AnalyticsService.cs     # 异步数据上报（Channel队列）
+│   └── HardwareCollector.cs    # 硬件信息采集（WMI）
+├── Strings/                   # 多语言资源
+│   ├── zh-CN.json              # 简体中文
+│   ├── zh-TW.json              # 繁体中文（台湾）
+│   ├── zh-HK.json              # 繁体中文（香港）
+│   ├── ja-JP.json              # 日语
+│   ├── ko-KR.json              # 韩语
+│   ├── ko-KP.json              # 朝鲜语
+│   ├── ru-RU.json              # 俄语
+│   ├── th-TH.json              # 泰语
+│   └── zh-CN-meow.json         # 喵体中文
 ├── Tools/                     # 第三方工具集
 │   ├── AIDA64/
 │   ├── CoreTemp/
@@ -116,18 +167,25 @@ VTStudioToolBox/
 │   ├── Geek Uninstaller/
 │   ├── hwinfo/
 │   └── color/
+├── ViewModels/                # 视图模型
+│   └── UserViewModel.cs        # 用户状态视图模型
 ├── Views/                     # UI页面
-│   ├── DashboardPage.xaml     # 仪表盘页面
+│   ├── AdbCache.cs             # ADB设备缓存
+│   ├── AndroidPage.xaml        # Android设备管理页面
+│   ├── AndroidPage.xaml.cs
+│   ├── DashboardPage.xaml      # 仪表盘页面
 │   ├── DashboardPage.xaml.cs
-│   ├── NetworkPage.xaml       # 网络检测页面（RFC 3489 + RFC 5780）
+│   ├── MacOSPage.xaml          # Hackintosh页面
+│   ├── MacOSPage.xaml.cs
+│   ├── NetworkPage.xaml        # 网络检测页面（RFC 3489 + RFC 5780）
 │   ├── NetworkPage.xaml.cs
-│   ├── UtilitiesPage.xaml     # 工具中心页面
-│   ├── UtilitiesPage.xaml.cs
-│   ├── SettingsPage.xaml      # 设置页面
-│   └── SettingsPage.xaml.cs
+│   ├── SettingsPage.xaml       # 设置页面
+│   ├── SettingsPage.xaml.cs
+│   ├── UtilitiesPage.xaml      # 工具中心页面
+│   └── UtilitiesPage.xaml.cs
 ├── App.xaml                   # 应用入口定义
-├── App.xaml.cs                # 应用生命周期管理
-├── MainWindow.xaml            # 主窗口布局
+├── App.xaml.cs                # 应用生命周期 + DI配置
+├── MainWindow.xaml            # 主窗口布局（含侧边栏头像）
 ├── MainWindow.xaml.cs         # 主窗口逻辑
 ├── CacheMaanager.cs           # 缓存管理接口(预留)
 ├── ChangeLog.cs               # 变更日志常量
@@ -140,14 +198,16 @@ VTStudioToolBox/
 
 ### 架构设计
 
-采用 MVVM Lite 架构模式：
+采用 MVVM + 依赖注入架构模式：
 
-View Layer: MainWindow → DashboardPage → NetworkPage → UtilitiesPage → SettingsPage
-    ↓ Data Binding / Events
-ViewModel Layer: 业务逻辑直接在Code-Behind实现，轻量化设计
-    ↓ Method Calls
-Model Layer: SystemInfo(DTO) + FileCacheManager(数据持久化) + StunClient/Stun5780Client(网络检测)
-    ↓ WMI / Registry / DirectX / UDP
+View Layer: MainWindow → DashboardPage → NetworkPage → UtilitiesPage → AndroidPage → SettingsPage
+    ↓ x:Bind / Data Binding / Events
+ViewModel Layer: UserViewModel (INotifyPropertyChanged)
+    ↓ DI / Method Calls
+Service Layer: AuthManager (OAuth/OpenID) + HardwareCollector (WMI) + AnalyticsService (Channel队列)
+    ↓ Interface Isolation
+Model Layer: UserIdentity + HardwareInfo + AnalyticsEvent + SystemInfo(DTO) + FileCacheManager
+    ↓ WMI / Registry / DirectX / UDP / HTTP
 System Layer: Windows Management Instrumentation、Windows Registry、DirectX Graphics Infrastructure、STUN Protocol (RFC 3489/5780)
 
 ## 快速开始
@@ -157,7 +217,7 @@ System Layer: Windows Management Instrumentation、Windows Registry、DirectX Gr
 组件 | 最低版本 | 推荐版本
 ----- | -------- | --------
 Windows OS | 10 1809 (10.0.17763.0) | 11 22H2+
-.NET SDK | 10.0.100 | 10.0.300+
+.NET SDK | 10.0.100 | 10.0.400+
 Visual Studio | 2022 17.4 | 2022 17.10+
 Windows App SDK | 1.6 | 1.6.250108002
 
@@ -216,19 +276,31 @@ dotnet run --configuration Debug --platform x64
 ```csharp
 public partial class App : Application
 {
-    private Window? m_window;
+    internal Window? m_window;
+    public static IServiceProvider Services { get; private set; } = null!;
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        Logger.Init();
+        LanguageHelper.Initialize();
+        ThemeHelper.Initialize();
+
+        // 依赖注入注册
+        Services = ConfigureServices();
+
         m_window = new MainWindow();
-        
-        // 全局深色主题配置
-        if (m_window.Content is FrameworkElement rootElement)
-        {
-            rootElement.RequestedTheme = ElementTheme.Dark;
-        }
-        
-        m_window.Activate();
+        // ...
+    }
+
+    private static ServiceProvider ConfigureServices()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<HardwareCollector>();
+        services.AddSingleton<IHardwareCollector>(sp => sp.GetRequiredService<HardwareCollector>());
+        services.AddSingleton<IAuthService, AuthManager>();
+        services.AddSingleton<IAnalyticsService, AnalyticsService>(...);
+        services.AddSingleton<UserViewModel>();
+        return services.BuildServiceProvider();
     }
 }
 ```
@@ -358,19 +430,20 @@ Mapping Test III: Binding Request to OTHER_ADDRESS → AddressDependent / Addres
 组件 | 版本 | 用途
 ----- | ---- | ----
 Microsoft.WindowsAppSDK | 1.6.250108002 | WinUI 3框架、Windows API封装
-.NET | 8.0 | 运行时、基础类库
+.NET | 10.0 | 运行时、基础类库
 WinUI 3 | 1.6 | UI框架、控件库
 
 ### 第三方依赖
 
 包名 | 版本 | 用途
 ----- | ---- | ----
+Microsoft.Extensions.DependencyInjection | 10.0.0-preview.5 | 依赖注入容器
 SharpDX | 4.2.0 | DirectX API访问、GPU信息获取
 SharpDX.Direct2D1 | 4.2.0 | Direct2D绑定
 SharpDX.Direct3D11 | 4.2.0 | Direct3D 11绑定
 System.Management | 10.0.2 | WMI查询支持
 Microsoft.Management.Infrastructure | 3.0.0 | WMI管理基础设施
-System.Drawing.Common | 8.0.0 | GDI+图像操作、图标提取
+System.Drawing.Common | 10.0.0 | GDI+图像操作、图标提取
 
 ### 系统依赖
 
@@ -475,7 +548,7 @@ Write-Host "All builds completed successfully"
 本项目采用 GNU General Public License v3.0 开源许可证。
 
 VTStudioToolBox - A developer's toolkit on Windows
-Copyright (C) 2024 VTStudio
+Copyright (C) 2016-2026 VisualTechStudio
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

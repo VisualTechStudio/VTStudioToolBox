@@ -24,6 +24,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- 语言设置 -->
@@ -47,14 +48,33 @@
                                   MinWidth="140"
                                   VerticalAlignment="Center"
                                   SelectionChanged="ThemeComboBox_SelectionChanged">
+                            <ComboBoxItem x:Name="ThemeSystemOption" Tag="System"/>
                             <ComboBoxItem x:Name="ThemeDarkOption" Tag="Dark"/>
                             <ComboBoxItem x:Name="ThemeLightOption" Tag="Light"/>
                         </ComboBox>
                     </StackPanel>
                 </Border>
 
-                <!-- 日志设置 -->
+                <!-- 隐私设置 -->
                 <Border Grid.Row="2" Style="{ThemeResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock x:Name="PrivacyHeader" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+                        <ToggleSwitch x:Name="AnalyticsToggle"
+                                      IsOn="False"
+                                      IsEnabled="False"
+                                      OffContent=""
+                                      OnContent=""/>
+                        <TextBlock x:Name="AnalyticsDescription"
+                                   FontSize="12"
+                                   Foreground="{ThemeResource SecondaryTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 日志设置 -->
+                <Border Grid.Row="3" Style="{ThemeResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock x:Name="LogHeader" FontSize="18" FontWeight="SemiBold"
                                    Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
@@ -84,7 +104,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Row="3" Style="{ThemeResource CardBorderStyle}">
+                <Border Grid.Row="4" Style="{ThemeResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock x:Name="AboutHeader" FontSize="18" FontWeight="SemiBold"
                                    Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
@@ -214,7 +234,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Row="4" Style="{ThemeResource CardBorderStyle}">
+                <Border Grid.Row="5" Style="{ThemeResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock x:Name="ChangelogHeader" FontSize="18" FontWeight="SemiBold"
                                    Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>

@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
@@ -340,7 +340,10 @@ namespace VTStudioToolBox.Views
                 {
                     foreach (ManagementObject cpu in searcher.Get())
                     {
-                        string name = CleanCpuName(cpu["Name"]?.ToString() ?? LanguageHelper.GetString("Unknown"));
+                        string rawName = cpu["Name"]?.ToString() ?? LanguageHelper.GetString("Unknown");
+                        if (rawName.Contains("Virtual", StringComparison.OrdinalIgnoreCase)) continue;
+
+                        string name = CleanCpuName(rawName);
                         string cores = cpu["NumberOfCores"]?.ToString() ?? "0";
                         string threads = cpu["NumberOfLogicalProcessors"]?.ToString() ?? "0";
                         string maxSpeed = cpu["MaxClockSpeed"]?.ToString() ?? "0";
@@ -631,6 +634,7 @@ namespace VTStudioToolBox.Views
                         long sizeBytes = Convert.ToInt64(drive["Size"] ?? 0);
 
                         if (string.IsNullOrEmpty(model) || sizeBytes < 1024L * 1024 * 1024 * 10) continue;
+                        if (model.Contains("Virtual", StringComparison.OrdinalIgnoreCase)) continue;
 
                         string sizeStr = LanguageHelper.GetString("Unknown");
                         if (sizeBytes > 0)
@@ -694,7 +698,8 @@ namespace VTStudioToolBox.Views
                     foreach (ManagementObject sound in searcher.Get())
                     {
                         string name = sound["Name"]?.ToString()?.Trim();
-                        if (!string.IsNullOrEmpty(name))
+                        if (!string.IsNullOrEmpty(name) &&
+                            !name.Contains("Virtual", StringComparison.OrdinalIgnoreCase))
                         {
                             audioDevices.Add(name);
                         }

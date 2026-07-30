@@ -106,7 +106,11 @@
     "ButtonOK": "확인",
     "LabelLanguage": "언어",
     "LabelTheme": "테마",
+    "ThemeSystem": "체계 설정 따르기",
     "ThemeDark": "다크",
+    "SectionPrivacy": "사생활보호",
+    "AnalyticsToggle": "VTStudio 사용자 체험 개선 및 하드웨어 조사에 참가",
+    "AnalyticsDescription": "제품 체험 개선에 협조해주십시오. 이 기능은 현재 리용할수 없습니다.",
     "ThemeLight": "라이트",
     "LangZhCN": "간체 한문",
     "LangEnUS": "영문",
@@ -175,5 +179,9 @@
     "AndroidStopRecord": "화면 보존정지",
     "DialogTitle_Confirm": "실행 전 확인",
     "ButtonYes": "동의",
-    "ButtonNo": "거부"
+    "ButtonNo": "거부",
+    "AuthNotLoggedIn": "등록 안됨",
+    "AuthSignIn": "등록",
+    "AuthSignInWith": "등록 방식",
+    "AuthSignOut": "해제"
 }

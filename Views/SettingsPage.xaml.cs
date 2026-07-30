@@ -47,8 +47,12 @@ namespace VTStudioToolBox.Views
             PageSubtitle.Text = LanguageHelper.GetString("SettingsSubtitle");
             LanguageHeader.Text = LanguageHelper.GetString("LabelLanguage");
             ThemeHeader.Text = LanguageHelper.GetString("LabelTheme");
+            ThemeSystemOption.Content = LanguageHelper.GetString("ThemeSystem");
             ThemeDarkOption.Content = LanguageHelper.GetString("ThemeDark");
             ThemeLightOption.Content = LanguageHelper.GetString("ThemeLight");
+            PrivacyHeader.Text = LanguageHelper.GetString("SectionPrivacy");
+            AnalyticsToggle.Header = LanguageHelper.GetString("AnalyticsToggle");
+            AnalyticsDescription.Text = LanguageHelper.GetString("AnalyticsDescription");
             LogHeader.Text = LanguageHelper.GetString("SectionLog");
             LogLevelLabel.Text = LanguageHelper.GetString("LabelLogLevel");
             FeedbackButtonText.Text = LanguageHelper.GetString("ButtonFeedback");
@@ -119,14 +123,12 @@ namespace VTStudioToolBox.Views
 
         private void InitThemeSettings()
         {
-            if (ThemeHelper.CurrentTheme == Microsoft.UI.Xaml.ElementTheme.Dark)
-            {
+            if (ThemeHelper.IsFollowingSystem)
+                ThemeComboBox.SelectedItem = ThemeSystemOption;
+            else if (ThemeHelper.CurrentTheme == Microsoft.UI.Xaml.ElementTheme.Dark)
                 ThemeComboBox.SelectedItem = ThemeDarkOption;
-            }
             else
-            {
                 ThemeComboBox.SelectedItem = ThemeLightOption;
-            }
         }
 
         private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -136,7 +138,11 @@ namespace VTStudioToolBox.Views
 
             if (ThemeComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
             {
-                if (Enum.TryParse<Microsoft.UI.Xaml.ElementTheme>(tag, out var theme))
+                if (tag == "System")
+                {
+                    ThemeHelper.ApplyFollowSystem();
+                }
+                else if (Enum.TryParse<Microsoft.UI.Xaml.ElementTheme>(tag, out var theme))
                 {
                     ThemeHelper.ApplyTheme(theme);
                 }

@@ -106,7 +106,11 @@
     "ButtonOK": "ตกลง",
     "LabelLanguage": "ภาษา",
     "LabelTheme": "ธีม",
+    "ThemeSystem": "ตามระบบ",
     "ThemeDark": "มืด",
+    "SectionPrivacy": "ความเป็นส่วนตัว",
+    "AnalyticsToggle": "เข้าร่วมโปรแกรมปรับปรุงประสบการณ์ผู้ใช้และสำรวจฮาร์ดแวร์ VTStudio",
+    "AnalyticsDescription": "ช่วยเราปรับปรุงผลิตภัณฑ์ ฟีเจอร์นี้ยังไม่พร้อมใช้งาน",
     "ThemeLight": "สว่าง",
     "LangZhCN": "简体中文",
     "LangEnUS": "English",
@@ -175,5 +179,9 @@
     "AndroidStopRecord": "หยุดบันทึกหน้าจอ",
     "DialogTitle_Confirm": "ยืนยันการดำเนินการ",
     "ButtonYes": "ใช่",
-    "ButtonNo": "ไม่"
+    "ButtonNo": "ไม่",
+    "AuthNotLoggedIn": "ยังไม่ได้เข้าสู่ระบบ",
+    "AuthSignIn": "เข้าสู่ระบบ",
+    "AuthSignInWith": "เข้าสู่ระบบด้วย",
+    "AuthSignOut": "ออกจากระบบ"
 }

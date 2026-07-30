@@ -106,8 +106,12 @@
     "ButtonOK": "确定",
     "LabelLanguage": "语言",
     "LabelTheme": "主题",
+    "ThemeSystem": "跟随系统",
     "ThemeDark": "深色",
     "ThemeLight": "浅色",
+    "SectionPrivacy": "隐私",
+    "AnalyticsToggle": "参与VTStudio用户体验改进及硬件调查计划",
+    "AnalyticsDescription": "帮助我们改进产品体验。此功能暂不可用。",
     "LangZhCN": "简体中文",
     "LangEnUS": "English",
     "DialogTitle_Failure": "操作失败",
@@ -175,5 +179,9 @@
     "AndroidStopRecord": "停止录屏",
     "DialogTitle_Confirm": "确认操作",
     "ButtonYes": "是",
-    "ButtonNo": "否"
+    "ButtonNo": "否",
+    "AuthNotLoggedIn": "未登录",
+    "AuthSignIn": "登录",
+    "AuthSignInWith": "登录方式",
+    "AuthSignOut": "退出登录"
 }

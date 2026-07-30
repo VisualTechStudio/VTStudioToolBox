@@ -106,7 +106,11 @@
     "ButtonOK": "OK",
     "LabelLanguage": "言語",
     "LabelTheme": "テーマ",
+    "ThemeSystem": "システム設定に従う",
     "ThemeDark": "ダーク",
+    "SectionPrivacy": "プライバシー",
+    "AnalyticsToggle": "VTStudioユーザーエクスペリエンス向上およびハードウェア調査に参加する",
+    "AnalyticsDescription": "製品体験の向上にご協力ください。この機能は現在利用できません。",
     "ThemeLight": "ライト",
     "LangZhCN": "简体中文 (簡体中国語)",
     "LangEnUS": "English (英語)",
@@ -175,5 +179,9 @@
     "AndroidStopRecord": "画面録画の停止",
     "DialogTitle_Confirm": "操作の確認",
     "ButtonYes": "はい",
-    "ButtonNo": "いいえ"
+    "ButtonNo": "いいえ",
+    "AuthNotLoggedIn": "未ログイン",
+    "AuthSignIn": "ログイン",
+    "AuthSignInWith": "ログイン方法",
+    "AuthSignOut": "ログアウト"
 }

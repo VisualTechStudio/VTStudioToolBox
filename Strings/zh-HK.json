@@ -106,7 +106,11 @@
     "ButtonOK": "確定",
     "LabelLanguage": "語言",
     "LabelTheme": "主題",
+    "ThemeSystem": "跟隨系統",
     "ThemeDark": "深色",
+    "SectionPrivacy": "私隱",
+    "AnalyticsToggle": "參與VTStudio用戶體驗改進及硬件調查計劃",
+    "AnalyticsDescription": "幫助我哋改進產品體驗。此功能暫不可用。",
     "ThemeLight": "淺色",
     "LangZhCN": "簡體中文",
     "LangEnUS": "English",
@@ -175,5 +179,9 @@
     "AndroidStopRecord": "停止錄影",
     "DialogTitle_Confirm": "確認操作",
     "ButtonYes": "係",
-    "ButtonNo": "唔係"
+    "ButtonNo": "唔係",
+    "AuthNotLoggedIn": "未登入",
+    "AuthSignIn": "登入",
+    "AuthSignInWith": "登入方式",
+    "AuthSignOut": "登出"
 }

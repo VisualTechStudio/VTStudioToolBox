@@ -44,8 +44,16 @@ namespace VTStudioToolBox.Views
 
         public static void Stop() => Timer.Stop();
 
+        private static bool _serverStarted;
+
         private static async Task InitVersion()
         {
+            if (!_serverStarted)
+            {
+                _serverStarted = true;
+                await Run("start-server");
+            }
+
             var (exit, output) = await Run("version");
             if (exit == 0 && output.Contains("Android Debug Bridge"))
             {

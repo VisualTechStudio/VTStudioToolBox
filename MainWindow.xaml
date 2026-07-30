@@ -89,6 +89,53 @@
                 </muxc:NavigationViewItem>
             </muxc:NavigationView.MenuItems>
 
+            <!-- Avatar / Login button — pinned above Settings in sidebar footer -->
+            <muxc:NavigationView.PaneFooter>
+                <Button x:Name="BtnAvatar"
+                        Click="BtnAvatar_Click"
+                        Padding="0"
+                        MinHeight="36"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Margin="0">
+                    <Grid Padding="16,6,16,6" ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="24"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Default person icon (not logged in) -->
+                        <FontIcon x:Name="IconAvatarFallback"
+                                  Grid.Column="0"
+                                  Glyph="&#xE77B;"
+                                  FontSize="18"
+                                  Foreground="{ThemeResource SecondaryTextBrush}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+
+                        <!-- User avatar image (logged in, hidden by default) -->
+                        <Ellipse x:Name="AvatarImage"
+                                 Grid.Column="0"
+                                 Width="24" Height="24"
+                                 Visibility="Collapsed">
+                            <Ellipse.Fill>
+                                <ImageBrush x:Name="AvatarBrush"/>
+                            </Ellipse.Fill>
+                        </Ellipse>
+
+                        <!-- Status text -->
+                        <TextBlock x:Name="TxtDisplayName"
+                                   Grid.Column="1"
+                                   VerticalAlignment="Center"
+                                   FontSize="14"
+                                   Foreground="{ThemeResource PrimaryTextBrush}"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </Grid>
+                </Button>
+            </muxc:NavigationView.PaneFooter>
+
             <Frame x:Name="ContentFrame"
                    Margin="0,32,0,0"/>
         </muxc:NavigationView>

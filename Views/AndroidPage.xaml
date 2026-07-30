@@ -80,117 +80,110 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Row 0: 设备 -->
                                 <TextBlock x:Name="LabelDevice" Grid.Row="0" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
                                 <TextBlock x:Name="ValueDevice" Grid.Row="0" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
-
-                                <!-- Row 1: 内核 -->
                                 <TextBlock x:Name="LabelKernel" Grid.Row="1" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
                                 <TextBlock x:Name="ValueKernel" Grid.Row="1" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
-
-                                <!-- Row 2: 硬件 -->
                                 <TextBlock x:Name="LabelHardware" Grid.Row="2" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
                                 <TextBlock x:Name="ValueHardware" Grid.Row="2" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
-
-                                <!-- Row 3: OS -->
                                 <TextBlock x:Name="LabelOS" Grid.Row="3" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
                                 <TextBlock x:Name="ValueOS" Grid.Row="3" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
-
-                                <!-- Row 4: 电量 -->
                                 <TextBlock x:Name="LabelBattery" Grid.Row="4" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
                                 <TextBlock x:Name="ValueBattery" Grid.Row="4" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
-
-                                <!-- Row 5: 分辨率 -->
                                 <TextBlock x:Name="LabelResolution" Grid.Row="5" Grid.Column="0" Style="{ThemeResource InfoLabelStyle}"/>
                                 <TextBlock x:Name="ValueResolution" Grid.Row="5" Grid.Column="1" Style="{ThemeResource InfoValueStyle}"/>
                             </Grid>
                         </StackPanel>
                     </Border>
-                    <Border x:Name="DeviceOverlay" Background="#80808080"
-                            CornerRadius="12" Visibility="Collapsed"/>
+                    <Border x:Name="DeviceOverlay" Background="#80808080" CornerRadius="12"/>
                 </Grid>
 
                 <!-- Quick Actions Card -->
-                <Border Grid.Column="1" Style="{ThemeResource CardBorderStyle}">
-                    <StackPanel>
-                        <TextBlock x:Name="ActionsHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+                <Grid Grid.Column="1">
+                    <Border Style="{ThemeResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock x:Name="ActionsHeader" FontSize="18" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>
 
-                        <!-- Reboot Section -->
-                        <TextBlock x:Name="RebootSectionHeader" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource SecondaryTextBrush}" Margin="0,0,0,6"/>
-                        <Grid ColumnSpacing="6" RowSpacing="6">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                            <!-- Reboot Section -->
+                            <TextBlock x:Name="RebootSectionHeader" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource SecondaryTextBrush}" Margin="0,0,0,6"/>
+                            <Grid ColumnSpacing="6" RowSpacing="6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
 
-                            <Button x:Name="BtnReboot" Click="BtnReboot_Click"
-                                    HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
-                                    Grid.Row="0" Grid.Column="0">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE708;" FontSize="12"/>
-                                    <TextBlock x:Name="BtnRebootText" FontSize="12" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="BtnRebootBootloader" Click="BtnRebootBootloader_Click"
-                                    HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
-                                    Grid.Row="0" Grid.Column="1">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE74E;" FontSize="12"/>
-                                    <TextBlock x:Name="BtnRebootBootloaderText" FontSize="12" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="BtnRebootFastbootd" Click="BtnRebootFastbootd_Click"
-                                    HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
-                                    Grid.Row="1" Grid.Column="0">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE777;" FontSize="12"/>
-                                    <TextBlock x:Name="BtnRebootFastbootdText" FontSize="12" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="BtnRebootRecovery" Click="BtnRebootRecovery_Click"
-                                    HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
-                                    Grid.Row="1" Grid.Column="1">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE777;" FontSize="12"/>
-                                    <TextBlock x:Name="BtnRebootRecoveryText" FontSize="12" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                        </Grid>
+                                <Button x:Name="BtnReboot" Click="BtnReboot_Click"
+                                        HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
+                                        Grid.Row="0" Grid.Column="0">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE708;" FontSize="12"/>
+                                        <TextBlock x:Name="BtnRebootText" FontSize="12" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="BtnRebootBootloader" Click="BtnRebootBootloader_Click"
+                                        HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
+                                        Grid.Row="0" Grid.Column="1">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE74E;" FontSize="12"/>
+                                        <TextBlock x:Name="BtnRebootBootloaderText" FontSize="12" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="BtnRebootFastbootd" Click="BtnRebootFastbootd_Click"
+                                        HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
+                                        Grid.Row="1" Grid.Column="0">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE777;" FontSize="12"/>
+                                        <TextBlock x:Name="BtnRebootFastbootdText" FontSize="12" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="BtnRebootRecovery" Click="BtnRebootRecovery_Click"
+                                        HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
+                                        Grid.Row="1" Grid.Column="1">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE777;" FontSize="12"/>
+                                        <TextBlock x:Name="BtnRebootRecoveryText" FontSize="12" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
 
-                        <!-- Screen Section -->
-                        <TextBlock x:Name="ScreenSectionHeader" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource SecondaryTextBrush}" Margin="0,12,0,6"/>
-                        <Grid ColumnSpacing="6">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                            <!-- Screen Section -->
+                            <TextBlock x:Name="ScreenSectionHeader" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource SecondaryTextBrush}" Margin="0,12,0,6"/>
+                            <Grid ColumnSpacing="6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                            <Button x:Name="BtnScreenshot" Click="BtnScreenshot_Click"
-                                    HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
-                                    Grid.Column="0">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE7FB;" FontSize="12"/>
-                                    <TextBlock x:Name="BtnScreenshotText" FontSize="12" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="BtnScreenRecord" Click="BtnScreenRecord_Click"
-                                    HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
-                                    Grid.Column="1">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon x:Name="ScreenRecordIcon" Glyph="&#xE714;" FontSize="12"/>
-                                    <TextBlock x:Name="BtnScreenRecordText" FontSize="12" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                        </Grid>
-                    </StackPanel>
-                </Border>
+                                <Button x:Name="BtnScreenshot" Click="BtnScreenshot_Click"
+                                        HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
+                                        Grid.Column="0">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE7FB;" FontSize="12"/>
+                                        <TextBlock x:Name="BtnScreenshotText" FontSize="12" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="BtnScreenRecord" Click="BtnScreenRecord_Click"
+                                        HorizontalAlignment="Stretch" Padding="8,6" CornerRadius="4"
+                                        Grid.Column="1">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon x:Name="ScreenRecordIcon" Glyph="&#xE714;" FontSize="12"/>
+                                        <TextBlock x:Name="BtnScreenRecordText" FontSize="12" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                    <!-- Overlay for quick actions when no device selected -->
+                    <Border x:Name="ActionsOverlay" Background="#80808080"
+                            CornerRadius="12"/>
+                </Grid>
             </Grid>
 
         </Grid>

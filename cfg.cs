@@ -5,18 +5,7 @@ namespace VTStudioToolBox
 {
     public static class Cfg
     {
-        private const string AppVersionPrefix = "[Release] 1.2.1 (Build.";
-
-        public static string AppVersion
-        {
-            get
-            {
-                var now = TimeZoneInfo.ConvertTimeFromUtc(
-                    DateTime.UtcNow,
-                    TimeZoneInfo.FindSystemTimeZoneById("China Standard Time"));
-                return $"{AppVersionPrefix}{now:yyMMddHHmm})";
-            }
-        }
+        public const string AppVersion = "[Release] 26.2.5 (Build.2607302050)";
 
         public const string Website = "https://visualtechstudio.github.io/";
         public const string GithubRepo = "https://github.com/VisualTechStudio/VTStudioToolBox";
