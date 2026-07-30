@@ -71,7 +71,7 @@ jobs:
         shell: pwsh
         run: |
           $cs = Get-Content "cfg.cs" -Raw
-          if ($cs -match 'AppVersionPrefix\s*=\s*"(.+?)"') {
+          if ($cs -match 'AppVersion\s*=\s*"(.+?)"') {
             $prefix = $Matches[1]
           } else {
             Write-Error "Failed to parse version prefix"
@@ -184,7 +184,7 @@ jobs:
         id: version
         shell: bash
         run: |
-          version=$(grep -oP 'AppVersionPrefix\s*=\s*"\[Release\]\s+\K\S+' cfg.cs | tr -d ' ')
+          version=$(grep -oP 'AppVersion\s*=\s*"\[Release\]\s+\K\S+' cfg.cs | tr -d ' ')
           build_num=$(TZ='Asia/Shanghai' date +'%y%m%d%H%M')
           short_sha="${GITHUB_SHA:0:7}"
           echo "version=${version}" >> $GITHUB_OUTPUT
