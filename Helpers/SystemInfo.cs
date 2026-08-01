@@ -18,5 +18,9 @@ namespace VTStudioToolBox.Helpers
         public string Version { get; set; } = "";
         public string InstallTime { get; set; } = "";
         public string BootTime { get; set; } = "";
+
+        public string CPUName { get; set; } = "";
+        public string GPUName { get; set; } = "";
+        public string RAMName { get; set; } = "";
     }
 }

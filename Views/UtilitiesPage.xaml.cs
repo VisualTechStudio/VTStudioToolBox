@@ -55,10 +55,6 @@ namespace VTStudioToolBox.Views
 
         private void OnThemeChanged()
         {
-            // Rebuild tool lists with new theme brushes
-            HardwareTools.Children.Clear();
-            DiskTools.Children.Clear();
-            SystemTools.Children.Clear();
             BuildToolList(HardwareTools, HardwareToolList);
             BuildToolList(DiskTools, DiskToolList);
             BuildToolList(SystemTools, SystemToolList);
@@ -81,66 +77,84 @@ namespace VTStudioToolBox.Views
             BuildToolList(SystemTools, SystemToolList);
         }
 
-        private void BuildToolList(StackPanel container, List<ToolInfo> tools)
+        private void BuildToolList(Grid container, List<ToolInfo> tools)
         {
             string appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+            container.Children.Clear();
+            container.RowDefinitions.Clear();
+            container.ColumnDefinitions.Clear();
 
-            foreach (var tool in tools)
+            container.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            container.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12, GridUnitType.Pixel) });
+            container.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            container.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12, GridUnitType.Pixel) });
+            container.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            int cols = 3;
+            int rows = (tools.Count + cols - 1) / cols;
+            for (int i = 0; i < rows; i++)
+                container.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            for (int i = 0; i < tools.Count; i++)
             {
+                int row = i / cols;
+                int col = (i % cols) * 2;
+
+                string toolPath = Path.Combine(appDirectory, "Tools", tools[i].ToolRelativePath);
+                string toolName = tools[i].Name;
+
+                var cardBg = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                    ThemeHelper.CurrentTheme == Microsoft.UI.Xaml.ElementTheme.Light
+                        ? Windows.UI.Color.FromArgb(255, 245, 245, 245)
+                        : Windows.UI.Color.FromArgb(255, 45, 45, 45));
                 var card = new Border
                 {
-                    Background = ThemeHelper.GetBrush("CardBackgroundBrush"),
+                    Background = cardBg,
                     CornerRadius = new CornerRadius(12),
-                    Padding = new Thickness(20),
-                    Margin = new Thickness(0, 0, 0, 12)
+                    Padding = new Thickness(16),
+                    Margin = new Thickness(0, 0, 0, 12),
+                    IsTapEnabled = true
                 };
+                card.Tapped += (s, e) => LaunchTool(toolPath, toolName);
 
-                var grid = new Grid();
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0, GridUnitType.Auto) });
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0, GridUnitType.Auto) });
+                var stack = new StackPanel { Spacing = 8 };
 
                 var icon = new WinUIImage
                 {
-                    Width = 32,
-                    Height = 32,
-                    Margin = new Thickness(0, 0, 16, 0),
-                    VerticalAlignment = VerticalAlignment.Center
+                    Width = 28,
+                    Height = 28,
+                    HorizontalAlignment = HorizontalAlignment.Left
                 };
-                LoadIconFromPath(icon, Path.Combine(appDirectory, "Tools", tool.IconRelativePath));
-                Grid.SetColumn(icon, 0);
+                LoadIconFromPath(icon, Path.Combine(appDirectory, "Tools", tools[i].IconRelativePath));
+                stack.Children.Add(icon);
 
-                var infoPanel = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-                infoPanel.Children.Add(new TextBlock
+                var isLight = ThemeHelper.CurrentTheme == Microsoft.UI.Xaml.ElementTheme.Light;
+                var primaryBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                    isLight ? Windows.UI.Color.FromArgb(255, 26, 26, 26) : Windows.UI.Color.FromArgb(255, 255, 255, 255));
+                var secondaryBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                    isLight ? Windows.UI.Color.FromArgb(255, 68, 68, 68) : Windows.UI.Color.FromArgb(255, 204, 204, 204));
+
+                stack.Children.Add(new TextBlock
                 {
-                    Text = tool.Name,
-                    FontSize = 18,
-                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                    Foreground = ThemeHelper.GetBrush("PrimaryTextBrush")
-                });
-                infoPanel.Children.Add(new TextBlock
-                {
-                    Text = LanguageHelper.GetString(tool.Description),
+                    Text = tools[i].Name,
                     FontSize = 14,
-                    Foreground = ThemeHelper.GetBrush("SecondaryTextBrush"),
-                    Margin = new Thickness(0, 4, 0, 0)
+                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                    Foreground = primaryBrush,
+                    TextTrimming = TextTrimming.CharacterEllipsis
                 });
-                Grid.SetColumn(infoPanel, 1);
 
-                var launchBtn = new Button
+                stack.Children.Add(new TextBlock
                 {
-                    Content = LanguageHelper.GetString("ButtonLaunch"),
-                    VerticalAlignment = VerticalAlignment.Center
-                };
-                string toolPath = Path.Combine(appDirectory, "Tools", tool.ToolRelativePath);
-                string toolName = tool.Name;
-                launchBtn.Click += (s, e) => LaunchTool(toolPath, toolName);
-                Grid.SetColumn(launchBtn, 2);
+                    Text = LanguageHelper.GetString(tools[i].Description),
+                    FontSize = 12,
+                    Foreground = secondaryBrush,
+                    TextWrapping = TextWrapping.Wrap,
+                    MaxLines = 2
+                });
 
-                grid.Children.Add(icon);
-                grid.Children.Add(infoPanel);
-                grid.Children.Add(launchBtn);
-                card.Child = grid;
+                card.Child = stack;
+                Grid.SetRow(card, row);
+                Grid.SetColumn(card, col);
                 container.Children.Add(card);
             }
         }

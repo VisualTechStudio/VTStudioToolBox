@@ -25,6 +25,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- 语言设置 -->
@@ -104,7 +105,31 @@
                     </StackPanel>
                 </Border>
 
+                <!-- 仪表盘设置 -->
                 <Border Grid.Row="4" Style="{ThemeResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock x:Name="DashboardHeader" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <TextBlock x:Name="RefreshIntervalLabel" FontSize="12"
+                                       Foreground="{ThemeResource SecondaryTextBrush}"
+                                       VerticalAlignment="Center"/>
+                            <ComboBox x:Name="RefreshIntervalComboBox"
+                                      Width="120"
+                                      VerticalAlignment="Center"
+                                      SelectionChanged="RefreshIntervalComboBox_SelectionChanged">
+                                <ComboBoxItem Content="100ms" Tag="100"/>
+                                <ComboBoxItem Content="200ms" Tag="200"/>
+                                <ComboBoxItem Content="500ms" Tag="500"/>
+                                <ComboBoxItem Content="1000ms" Tag="1000"/>
+                                <ComboBoxItem Content="2000ms" Tag="2000" IsSelected="True"/>
+                                <ComboBoxItem Content="5000ms" Tag="5000"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="5" Style="{ThemeResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock x:Name="AboutHeader" FontSize="18" FontWeight="SemiBold"
                                    Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
@@ -234,7 +259,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Row="5" Style="{ThemeResource CardBorderStyle}">
+                <Border Grid.Row="6" Style="{ThemeResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock x:Name="ChangelogHeader" FontSize="18" FontWeight="SemiBold"
                                    Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>

@@ -40,6 +40,23 @@ Steam | OpenID 2.0 | 用户头像、昵称
 显示器 | 显示器型号 | WMI Win32_PnPEntity
 系统 | OS版本、安装时间、开机时长、计算机名 | WMI Win32_OperatingSystem
 
+### 实时硬件监控模块
+
+检测类别 | 检测项 | 实现方式
+--------- | ------ | --------
+CPU | 实时频率、使用率、温度、电压、功耗 | Performance Counter + LibreHardwareMonitorLib + ACPI Thermal Zone
+GPU | 核心频率、显存频率、使用率、温度、电压、功耗 | LibreHardwareMonitorLib
+风扇 | 转速（CPU/GPU/Mid） | ASUS ATKACPI驱动 / LibreHardwareMonitorLib
+内存 | 使用率 | LibreHardwareMonitorLib
+硬盘 | 占用空间 | LibreHardwareMonitorLib
+
+传感器数据采集采用三层回退策略：
+1. **LibreHardwareMonitorLib** — 优先读取（GPU数据全部正常，部分AMD平台CPU数据受限）
+2. **HWiNFO64共享内存** — 若HWiNFO运行中，从其共享内存读取
+3. **Windows API回退** — CPU频率使用Performance Counter "Actual Frequency"（实时频率），温度使用ACPI热区
+
+ASUS设备风扇读取通过 `\\.\ATKACPI` 内核驱动（IOCTL `0x0022240C`）实现，使用DSTS方法读取设备状态，支持CPU Fan、GPU Fan、Mid Fan三个风扇通道。
+
 ### 网络检测模块
 
 检测协议 | 检测项 | 实现方式
@@ -105,6 +122,8 @@ CPU检测 | CPU-Z | 处理器详细信息、缓存、主板信息
 ```
 VTStudioToolBox/
 ├── Assets/                     # 应用资源
+│   ├── Fonts/                   # 自定义字体
+│   │   └── ROGFontsv1.6-Regular.ttf  # ASUS ROG专属字体
 │   ├── LockScreenLogo.scale-200.png
 │   ├── SplashScreen.scale-200.png
 │   ├── Square150x150Logo.scale-200.png
@@ -121,6 +140,7 @@ VTStudioToolBox/
 │   ├── IAnalyticsService.cs     # 数据上报接口
 │   └── AuthManager.cs           # OAuth/OpenID 认证实现
 ├── Helpers/                   # 辅助工具类
+│   ├── DashboardSettings.cs    # 仪表盘设置（刷新间隔等）
 │   ├── DnsResolver.cs          # DNS-over-HTTPS解析器
 │   ├── EulaHelper.cs           # EULA协议管理
 │   ├── FileCacheManager.cs     # 文件缓存管理器
@@ -145,7 +165,10 @@ VTStudioToolBox/
 │   └── StunServer.cs           # STUN服务器地址解析
 ├── Services/                  # 业务服务
 │   ├── AnalyticsService.cs     # 异步数据上报（Channel队列）
-│   └── HardwareCollector.cs    # 硬件信息采集（WMI）
+│   ├── AsusFanReader.cs        # ASUS ATKACPI风扇读取
+│   ├── HardwareCollector.cs    # 硬件信息采集（WMI）
+│   ├── HardwareMonitorService.cs  # 硬件传感器监控（LibreHardwareMonitorLib）
+│   └── HwInfoReader.cs         # HWiNFO64共享内存读取
 ├── Strings/                   # 多语言资源
 │   ├── zh-CN.json              # 简体中文
 │   ├── zh-TW.json              # 繁体中文（台湾）
@@ -200,15 +223,15 @@ VTStudioToolBox/
 
 采用 MVVM + 依赖注入架构模式：
 
-View Layer: MainWindow → DashboardPage → NetworkPage → UtilitiesPage → AndroidPage → SettingsPage
+View Layer: MainWindow → DashboardPage → NetworkPage → UtilitiesPage → AndroidPage → SettingsPage (含仪表盘刷新间隔设置)
     ↓ x:Bind / Data Binding / Events
 ViewModel Layer: UserViewModel (INotifyPropertyChanged)
     ↓ DI / Method Calls
-Service Layer: AuthManager (OAuth/OpenID) + HardwareCollector (WMI) + AnalyticsService (Channel队列)
+Service Layer: AuthManager (OAuth/OpenID) + HardwareCollector (WMI) + HardwareMonitorService (LibreHardwareMonitorLib) + AsusFanReader (ATKACPI) + HwInfoReader (HWiNFO64共享内存) + AnalyticsService (Channel队列)
     ↓ Interface Isolation
 Model Layer: UserIdentity + HardwareInfo + AnalyticsEvent + SystemInfo(DTO) + FileCacheManager
-    ↓ WMI / Registry / DirectX / UDP / HTTP
-System Layer: Windows Management Instrumentation、Windows Registry、DirectX Graphics Infrastructure、STUN Protocol (RFC 3489/5780)
+    ↓ WMI / Registry / DirectX / UDP / HTTP / Performance Counter / ACPI / ATKACPI
+System Layer: Windows Management Instrumentation、Windows Registry、DirectX Graphics Infrastructure、STUN Protocol (RFC 3489/5780)、Performance Counter、ACPI Thermal Zone、ASUS ATKACPI Driver
 
 ## 快速开始
 
@@ -262,9 +285,11 @@ dotnet publish --configuration Release --platform ARM64 --self-contained true --
 # 开发模式运行
 dotnet run --configuration Debug --platform x64
 
-# 运行发布版本
+# 运行发布版本（需要管理员权限，用于读取硬件传感器）
 ./publish/x64/VTStudioToolBox.exe
 ```
+
+> **注意**：应用通过 `app.manifest` 请求管理员权限（`requireAdministrator`），LibreHardwareMonitorLib 和 ASUS ATKACPI 驱动需要管理员权限才能读取硬件传感器数据。
 
 
 ## 核心模块详解
@@ -328,7 +353,13 @@ private readonly Dictionary<string, Type> _pageRoutes = new()
 
 ### 3. 仪表盘页面 (DashboardPage.xaml.cs)
 
-职责：系统信息采集、缓存管理、UI展示
+职责：系统信息采集、缓存管理、实时硬件监控、UI展示
+
+布局结构：
+- 左上：设备型号卡片（ASUS设备使用ROG专属字体）
+- 左侧：硬件信息卡片（制造商、主板、型号、CPU、内存、GPU、硬盘、网卡、声卡、显示器）
+- 右上：系统信息卡片（计算机名、系统版本、安装时间、运行时间）
+- 右下：系统使用率卡片（CPU频率/使用率/温度/电压/功耗、GPU核心/显存/使用率/温度/电压/功耗、内存使用率、风扇转速）
 
 数据采集流程：
 
@@ -339,6 +370,15 @@ LoadSystemInfoWithCacheAsync()
 缓存存在 → 立即显示缓存 → 后台刷新数据 → 更新缓存+UI
 缓存不存在 → 显示加载中 → 采集系统信息 → 更新缓存+UI
 
+实时监控流程：
+
+InitHardwareMonitorAsync() (异步，不阻塞UI)
+    ↓
+初始化 HardwareMonitorService (静态单例，页面切换不销毁)
+    ↓
+启动 DispatcherTimer (默认2秒，可在设置中调整: 100ms/200ms/500ms/1000ms/2000ms/5000ms)
+    ↓
+UpdateSensorData() → 读取CPU/GPU/风扇/内存/硬盘传感器数据 → 更新UI
 
 WMI并行查询优化：
 
@@ -438,9 +478,11 @@ WinUI 3 | 1.6 | UI框架、控件库
 包名 | 版本 | 用途
 ----- | ---- | ----
 Microsoft.Extensions.DependencyInjection | 10.0.0-preview.5 | 依赖注入容器
+LibreHardwareMonitorLib | 0.9.6 | 硬件传感器监控（CPU/GPU/风扇/内存/硬盘）
 SharpDX | 4.2.0 | DirectX API访问、GPU信息获取
 SharpDX.Direct2D1 | 4.2.0 | Direct2D绑定
 SharpDX.Direct3D11 | 4.2.0 | Direct3D 11绑定
+System.Diagnostics.PerformanceCounter | 10.0.10 | CPU实时频率读取
 System.Management | 10.0.2 | WMI查询支持
 Microsoft.Management.Infrastructure | 3.0.0 | WMI管理基础设施
 System.Drawing.Common | 10.0.0 | GDI+图像操作、图标提取
@@ -448,8 +490,12 @@ System.Drawing.Common | 10.0.0 | GDI+图像操作、图标提取
 ### 系统依赖
 
 - WMI (Windows Management Instrumentation)：硬件信息采集
-- Windows Registry：显卡显存信息读取
+- Windows Registry：显卡显存信息读取、ASUS固件版本检测
 - DXGI (DirectX Graphics Infrastructure)：GPU信息获取
+- Performance Counter：CPU实时频率读取
+- ACPI Thermal Zone (MSAcpi_ThermalZoneTemperature)：CPU温度读取
+- ASUS ATKACPI驱动 (ATKWMIACPIIO)：ASUS设备风扇转速读取
+- HWiNFO64共享内存：备选传感器数据源
 
 ## 开发指南
 
@@ -491,18 +537,22 @@ rootElement.RequestedTheme = ElementTheme.Default; // 跟随系统
 - 缓存有效期：24小时（可在 FileCacheManager.Set() 中调整）
 - 缓存键名：SystemInfo
 - 缓存位置：%LOCALAPPDATA%\VTStudioToolBox\Cache\SystemInfo.json
+- 仪表盘设置：%LOCALAPPDATA%\VTStudioToolBox\dashboard.json（刷新间隔、警告抑制）
 
 ### 并行优化
 
 - WMI查询采用 Task.Run() 并行执行
 - 设置10秒超时防止长时间阻塞
 - 显示器信息单独后台加载，不阻塞主流程
+- 硬件监控初始化异步执行，不阻塞UI线程
+- 硬件监控服务使用静态单例，页面切换时复用，避免重复初始化
 
 ### 异常处理
 
 - 所有WMI查询都有独立的try-catch包裹
 - 单个查询失败不影响其他信息采集
 - 缓存读取失败静默降级到实时采集
+- 传感器读取失败时显示"--"，不影响其他传感器数据
 
 ## CI/CD
 

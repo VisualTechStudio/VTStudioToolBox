@@ -5,7 +5,7 @@ namespace VTStudioToolBox
 {
     public static class Cfg
     {
-        public const string AppVersion = "[Release] 26.2.5 (Build.2607302050)";
+        public const string AppVersion = "[Release] 26.2.6 (Build.2608010830)";
 
         public const string Website = "https://visualtechstudio.github.io/";
         public const string GithubRepo = "https://github.com/VisualTechStudio/VTStudioToolBox";

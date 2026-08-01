@@ -30,6 +30,9 @@ namespace VTStudioToolBox.Views
             // Initialize theme selector
             InitThemeSettings();
 
+            // Initialize refresh interval
+            InitRefreshInterval();
+
             ThemeHelper.ThemeChanged += OnThemeChanged;
             _isInitializing = false;
         }
@@ -65,6 +68,8 @@ namespace VTStudioToolBox.Views
             ContributionsHeader.Text = LanguageHelper.GetString("SectionContributions");
             ContributionsIntro.Text = LanguageHelper.GetString("ContributionsIntro");
             ChangelogHeader.Text = LanguageHelper.GetString("SectionChangelog");
+            DashboardHeader.Text = LanguageHelper.GetString("SectionDashboard");
+            RefreshIntervalLabel.Text = LanguageHelper.GetString("LabelRefreshInterval");
 
             // Copyright and GPL
             CopyrightText.Inlines.Clear();
@@ -129,6 +134,73 @@ namespace VTStudioToolBox.Views
                 ThemeComboBox.SelectedItem = ThemeDarkOption;
             else
                 ThemeComboBox.SelectedItem = ThemeLightOption;
+        }
+
+        private void InitRefreshInterval()
+        {
+            int current = DashboardSettings.RefreshIntervalMs;
+            foreach (ComboBoxItem item in RefreshIntervalComboBox.Items)
+            {
+                if (item.Tag is string tag && int.TryParse(tag, out int ms) && ms == current)
+                {
+                    RefreshIntervalComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+        private async void RefreshIntervalComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isInitializing) return;
+            if (RefreshIntervalComboBox?.SelectedItem is ComboBoxItem item && item.Tag is string tag && int.TryParse(tag, out int ms))
+            {
+                if (ms <= 500 && !DashboardSettings.SuppressHighRefreshWarning)
+                {
+                    var dialog = new ContentDialog
+                    {
+                        Title = LanguageHelper.GetString("HighRefreshWarningTitle"),
+                        Content = LanguageHelper.GetString("HighRefreshWarningMessage"),
+                        PrimaryButtonText = LanguageHelper.GetString("ButtonContinue"),
+                        SecondaryButtonText = LanguageHelper.GetString("ButtonCancel"),
+                        DefaultButton = ContentDialogButton.Secondary,
+                        XamlRoot = this.XamlRoot
+                    };
+
+                    var checkBox = new CheckBox
+                    {
+                        Content = LanguageHelper.GetString("DontShowAgain"),
+                        Margin = new Thickness(0, 12, 0, 0)
+                    };
+                    dialog.Content = new StackPanel
+                    {
+                        Children =
+                        {
+                            new TextBlock { Text = LanguageHelper.GetString("HighRefreshWarningMessage"), TextWrapping = TextWrapping.Wrap },
+                            checkBox
+                        }
+                    };
+
+                    var result = await dialog.ShowAsync();
+                    if (checkBox.IsChecked == true)
+                        DashboardSettings.SetSuppressHighRefreshWarning(true);
+
+                    if (result == ContentDialogResult.Primary)
+                    {
+                        DashboardSettings.SetRefreshInterval(ms);
+                    }
+                    else
+                    {
+                        _isInitializing = true;
+                        InitRefreshInterval();
+                        _isInitializing = false;
+                        return;
+                    }
+                }
+                else
+                {
+                    DashboardSettings.SetRefreshInterval(ms);
+                }
+            }
         }
 
         private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

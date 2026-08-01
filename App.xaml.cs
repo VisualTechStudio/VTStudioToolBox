@@ -28,6 +28,7 @@ namespace VTStudioToolBox
 
             LanguageHelper.Initialize();
             ThemeHelper.Initialize();
+            DashboardSettings.Initialize();
 
             // ── DI Registration ──
             Services = ConfigureServices();

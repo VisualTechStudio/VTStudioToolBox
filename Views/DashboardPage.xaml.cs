@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.Win32;
 using SharpDX;
 using SharpDX.DXGI;
+using Microsoft.UI.Xaml.Media;
 using VTStudioToolBox.Helpers;
+using VTStudioToolBox.Services;
 
 namespace VTStudioToolBox.Views
 {
@@ -16,6 +18,9 @@ namespace VTStudioToolBox.Views
     {
         private DispatcherTimer? _bootTimer;
         private DateTime? _bootTime;
+        private HardwareMonitorService? _hardwareMonitor;
+        private SystemInfo? _systemInfo;
+        private DispatcherTimer? _sensorTimer;
 
         public DashboardPage()
         {
@@ -32,6 +37,7 @@ namespace VTStudioToolBox.Views
             LoadingText.Text = LanguageHelper.GetString("LoadingHardware");
             HardwareInfoHeader.Text = LanguageHelper.GetString("HardwareInfo");
             SystemInfoHeader.Text = LanguageHelper.GetString("SystemInfo");
+
 
             LabelManufacturer.Text = LanguageHelper.GetString("LabelManufacturer");
             LabelMotherboard.Text = LanguageHelper.GetString("LabelMotherboard");
@@ -50,25 +56,263 @@ namespace VTStudioToolBox.Views
             LabelUptime.Text = LanguageHelper.GetString("LabelUptime");
         }
 
+        private static HardwareMonitorService? _staticHardwareMonitor;
+        private static bool _hardwareMonitorInitStarted;
+        private bool _isDragging;
+        private DispatcherTimer? _dragEndTimer;
+
         private async void DashboardPage_Loaded(object sender, RoutedEventArgs e)
         {
             Logger.Dev("Dashboard", "Page loaded");
+            DashboardSettings.RefreshIntervalChanged += OnRefreshIntervalChanged;
+            ActualThemeChanged += OnActualThemeChanged;
+            SubscribeWindowMove();
             UpdateWelcomeMessage();
             await LoadSystemInfoWithCacheAsync();
             StartBootTimer();
+            await InitHardwareMonitorAsync();
         }
 
         private void DashboardPage_Unloaded(object sender, RoutedEventArgs e)
         {
+            DashboardSettings.RefreshIntervalChanged -= OnRefreshIntervalChanged;
+            ActualThemeChanged -= OnActualThemeChanged;
+            UnsubscribeWindowMove();
             _bootTimer?.Stop();
             _bootTimer = null;
+            _sensorTimer?.Stop();
+            _sensorTimer = null;
+            _dragEndTimer?.Stop();
+            _dragEndTimer = null;
+            // Don't dispose hardware monitor - keep it alive for reuse
+            _hardwareMonitor = null;
+        }
+
+        private void SubscribeWindowMove()
+        {
+            try
+            {
+                var window = WindowHelper.GetWindow();
+                if (window?.Content is FrameworkElement root)
+                {
+                    var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                    var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+                    var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+                    if (appWindow != null)
+                    {
+                        appWindow.Changed += OnAppWindowChanged;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void UnsubscribeWindowMove()
+        {
+            try
+            {
+                var window = WindowHelper.GetWindow();
+                if (window?.Content is FrameworkElement)
+                {
+                    var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                    var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+                    var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+                    if (appWindow != null)
+                    {
+                        appWindow.Changed -= OnAppWindowChanged;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void OnAppWindowChanged(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowChangedEventArgs args)
+        {
+            if (args.DidPositionChange)
+            {
+                if (!_isDragging)
+                {
+                    _isDragging = true;
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        _sensorTimer?.Stop();
+                        _dragEndTimer?.Stop();
+                    });
+                }
+                // Reset the debounce timer
+                _dragEndTimer?.Stop();
+                _dragEndTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
+                _dragEndTimer.Tick += (s, e) =>
+                {
+                    _dragEndTimer.Stop();
+                    _isDragging = false;
+                    if (_sensorTimer != null)
+                        _sensorTimer.Start();
+                };
+                _dragEndTimer.Start();
+            }
+        }
+
+        private void OnActualThemeChanged(FrameworkElement sender, object args)
+        {
+            if (_hardwareMonitor != null)
+                UpdateSensorData();
+        }
+
+        private void StartSensorTimer()
+        {
+            _sensorTimer?.Stop();
+            _sensorTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(DashboardSettings.RefreshIntervalMs) };
+            _sensorTimer.Tick += (s, e) => UpdateSensorData();
+            _sensorTimer.Start();
+        }
+
+        private void OnRefreshIntervalChanged(int ms)
+        {
+            DispatcherQueue.TryEnqueue(() => StartSensorTimer());
+        }
+
+        private async Task InitHardwareMonitorAsync()
+        {
+            if (_staticHardwareMonitor != null)
+            {
+                _hardwareMonitor = _staticHardwareMonitor;
+                StartSensorTimer();
+                UpdateSensorData();
+                return;
+            }
+
+            if (_hardwareMonitorInitStarted) return;
+            _hardwareMonitorInitStarted = true;
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    var monitor = new HardwareMonitorService();
+                    monitor.Open();
+                    monitor.Update();
+                    _staticHardwareMonitor = monitor;
+                });
+
+                _hardwareMonitor = _staticHardwareMonitor;
+                UpdateSensorData();
+                StartSensorTimer();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Dashboard", "Failed to init hardware monitor", ex);
+            }
+        }
+
+        private static string ExtractMemoryFrequency(string ramInfo)
+        {
+            if (string.IsNullOrEmpty(ramInfo)) return "--";
+            int idx = ramInfo.IndexOf("MHz", StringComparison.OrdinalIgnoreCase);
+            if (idx <= 0) return "--";
+            int end = idx;
+            while (end > 0 && (ramInfo[end - 1] == ' ')) end--;
+            int start = end;
+            while (start > 0 && char.IsDigit(ramInfo[start - 1])) start--;
+            string freq = ramInfo.Substring(start, end - start).Trim();
+            return string.IsNullOrEmpty(freq) ? "--" : $"{freq} MHz";
+        }
+
+        private static void FillSensorGrid(Grid grid, (string Label, string Value)[] items)
+        {
+            grid.Children.Clear();
+            grid.RowDefinitions.Clear();
+            grid.ColumnDefinitions.Clear();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            for (int i = 0; i < items.Length; i++)
+            {
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                AddSensorCell(grid, items[i].Label, i, 0, true);
+                AddSensorCell(grid, items[i].Value, i, 1, false);
+            }
+        }
+
+        private static void AddSensorCell(Grid grid, string text, int row, int col, bool isLabel)
+        {
+            var tb = new TextBlock
+            {
+                Text = text,
+                Style = (Microsoft.UI.Xaml.Style)Application.Current.Resources[isLabel ? "InfoLabelStyle" : "InfoValueStyle"],
+                Margin = new Thickness(0, 0, 0, 3),
+                HorizontalAlignment = col == 0 ? HorizontalAlignment.Left : HorizontalAlignment.Right
+            };
+            Grid.SetRow(tb, row);
+            Grid.SetColumn(tb, col);
+            grid.Children.Add(tb);
+        }
+
+        private void UpdateSensorData()
+        {
+            try
+            {
+                if (_hardwareMonitor == null) return;
+                _hardwareMonitor.Update();
+
+                CpuSensorLabel.Text = "CPU";
+                var cpu = _hardwareMonitor.GetCpuData();
+                string memFreq = ExtractMemoryFrequency(_systemInfo?.RAM ?? "");
+                FillSensorGrid(CpuSensorGrid, new[] {
+                    (LanguageHelper.GetString("SensorFrequency"), cpu.Frequency),
+                    (LanguageHelper.GetString("SensorMemFrequency"), memFreq),
+                    (LanguageHelper.GetString("SensorUsage"), cpu.Usage),
+                    (LanguageHelper.GetString("SensorTemperature"), cpu.Temperature),
+                    (LanguageHelper.GetString("SensorVoltage"), cpu.Voltage),
+                    (LanguageHelper.GetString("SensorPower"), cpu.Power)
+                });
+
+                GpuSensorLabel.Text = "GPU";
+                var gpu = _hardwareMonitor.GetGpuData();
+                FillSensorGrid(GpuSensorGrid, new[] {
+                    (LanguageHelper.GetString("SensorCore"), gpu.Frequency),
+                    (LanguageHelper.GetString("SensorVRAM"), gpu.MemoryFrequency),
+                    (LanguageHelper.GetString("SensorUsage"), gpu.Usage),
+                    (LanguageHelper.GetString("SensorTemperature"), gpu.Temperature),
+                    (LanguageHelper.GetString("SensorVoltage"), gpu.Voltage),
+                    (LanguageHelper.GetString("SensorPower"), gpu.Power)
+                });
+
+                MemorySensorLabel.Text = LanguageHelper.GetString("LabelRAM").TrimEnd('：', ':');
+                var mem = _hardwareMonitor.GetMemoryData();
+                FillSensorGrid(MemorySensorGrid, new[] {
+                    (LanguageHelper.GetString("SensorUsage"), mem.Usage)
+                });
+
+                FanSensorLabel.Text = LanguageHelper.GetString("LabelFan").TrimEnd('：', ':');
+                var fans = _hardwareMonitor.GetFanData();
+                FanSensorGrid.Children.Clear();
+                FanSensorGrid.RowDefinitions.Clear();
+                FanSensorGrid.ColumnDefinitions.Clear();
+                if (fans.Count > 0)
+                {
+                    FanSensorGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    FanSensorGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    for (int i = 0; i < fans.Count; i++)
+                    {
+                        FanSensorGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                        AddSensorCell(FanSensorGrid, fans[i].Name, i, 0, true);
+                        AddSensorCell(FanSensorGrid, fans[i].Rpm, i, 1, false);
+                    }
+                }
+
+                MonitorBorder.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Dashboard", "Sensor update failed", ex);
+            }
         }
 
         private void UpdateWelcomeMessage()
         {
             string displayName = GetDisplayName();
             string greeting = GetGreetingByTime();
-            WelcomeText.Text = $"{greeting}，{displayName}";
+            PageSubtitle.Text = $"{greeting}，{displayName}";
         }
 
         private string GetDisplayName()
@@ -169,6 +413,25 @@ namespace VTStudioToolBox.Views
         private void UpdateUIWithSystemInfo(SystemInfo info)
         {
             Logger.Dev("Dashboard", $"UpdateUI: Manufacturer={info.Manufacturer}, CPU={info.CPU?.Substring(0, Math.Min(20, info.CPU?.Length ?? 0))}...");
+            _systemInfo = info;
+
+            // Left panel: Model + Manufacturer
+            DeviceManufacturerText.Text = info.Model;
+            DeviceMotherboardText.Text = info.Manufacturer;
+
+            // ASUS ROG special font
+            if (!string.IsNullOrEmpty(info.Model) &&
+                (info.Model.Contains("ASUS", StringComparison.OrdinalIgnoreCase) ||
+                 info.Model.Contains("ROG", StringComparison.OrdinalIgnoreCase) ||
+                 info.Model.Contains("TX", StringComparison.OrdinalIgnoreCase) ||
+                 info.Model.Contains("Strix", StringComparison.OrdinalIgnoreCase)))
+            {
+                DeviceManufacturerText.FontFamily = new FontFamily("ms-appx:///Assets/Fonts/ROGFontsv1.6-Regular.ttf#ROG Fonts v1.6");
+                DeviceManufacturerText.FontSize = 30;
+                DeviceCardBorder.Margin = new Thickness(5, -20, 0, 16);
+            }
+
+            // Right panel: Hardware details
             HardwareManufacturerText.Text = info.Manufacturer;
             MotherboardText.Text = info.Motherboard;
             HardwareModelText.Text = info.Model;
@@ -180,12 +443,14 @@ namespace VTStudioToolBox.Views
             AudioText.Text = info.Audio;
             DisplayText.Text = info.Display;
 
+            // Left panel: System info
             SystemComputerNameText.Text = info.ComputerName;
             SystemInfoText.Text = $"{info.OSInfo} {info.Version}";
             SystemInstallTimeText.Text = info.InstallTime;
             SystemBootTimeText.Text = info.BootTime;
 
             LoadingBorder.Visibility = Visibility.Collapsed;
+            DeviceCardBorder.Visibility = Visibility.Visible;
             HardwareInfoBorder.Visibility = Visibility.Visible;
             SystemInfoBorder.Visibility = Visibility.Visible;
         }
@@ -344,6 +609,7 @@ namespace VTStudioToolBox.Views
                         if (rawName.Contains("Virtual", StringComparison.OrdinalIgnoreCase)) continue;
 
                         string name = CleanCpuName(rawName);
+                        info.CPUName = name;
                         string cores = cpu["NumberOfCores"]?.ToString() ?? "0";
                         string threads = cpu["NumberOfLogicalProcessors"]?.ToString() ?? "0";
                         string maxSpeed = cpu["MaxClockSpeed"]?.ToString() ?? "0";
@@ -449,6 +715,7 @@ namespace VTStudioToolBox.Views
                 if (ramDisplay.Count > 0)
                 {
                     ramText += "\n" + string.Join("\n", ramDisplay);
+                    info.RAMName = string.Join(" / ", memoryGroups.Keys);
                 }
 
                 info.RAM = ramText;
@@ -611,6 +878,7 @@ namespace VTStudioToolBox.Views
                             !name.Contains("Microsoft Basic Display", StringComparison.OrdinalIgnoreCase) &&
                             !name.Contains("Basic Display Adapter", StringComparison.OrdinalIgnoreCase))
                         {
+                            if (string.IsNullOrEmpty(info.GPUName)) info.GPUName = name;
                             gpuList.Add(displayName);
                         }
                     }
