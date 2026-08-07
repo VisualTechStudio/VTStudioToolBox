@@ -140,7 +140,7 @@ jobs:
       - name: Generate self-signed certificate
         shell: pwsh
         run: |
-          $pwd = ConvertTo-SecureString -String "CIBuild" -Force -AsPlainText
+          $certPwd = ConvertTo-SecureString -String "CIBuild" -Force -AsPlainText
           $cert = New-SelfSignedCertificate `
             -Type CodeSigningCert `
             -Subject "CN=VTStudioToolBox CI Build" `
@@ -148,8 +148,8 @@ jobs:
             -NotAfter (Get-Date).AddYears(1) `
             -KeyUsage DigitalSignature
 
-          $pfxPath = Join-Path $PWD "CI_Build_Signing.pfx"
-          Export-PfxCertificate -Cert $cert -FilePath $pfxPath -Password $pwd -Force | Out-Null
+          $pfxPath = Join-Path $env:GITHUB_WORKSPACE "CI_Build_Signing.pfx"
+          Export-PfxCertificate -Cert $cert -FilePath $pfxPath -Password $certPwd -Force | Out-Null
 
           Write-Host "Generated certificate: $($cert.Thumbprint)"
           Write-Host "PFX exported to: $pfxPath"
