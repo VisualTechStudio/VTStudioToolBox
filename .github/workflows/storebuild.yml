@@ -105,26 +105,33 @@ jobs:
         run: |
           $csproj = "VTStudioToolBox.csproj"
           $xml = [xml](Get-Content $csproj -Raw)
-          $ns = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
-          $ns.AddNamespace("m", "http://schemas.microsoft.com/developer/msbuild/2003")
 
-          # 1. Remove all Tools\ Content references
-          $contentNodes = $xml.SelectNodes("//m:Content[contains(@Include, 'Tools\')]", $ns)
+          # 1. Remove all Tools Content references (SDK-style csproj has no namespace)
+          $allContent = $xml.SelectNodes("//Content[@Include]")
           $removed = 0
-          foreach ($node in $contentNodes) {
-            $node.ParentNode.RemoveChild($node) | Out-Null
-            $removed++
+          foreach ($node in $allContent) {
+            $inc = $node.GetAttribute("Include")
+            # Match Tools\xxx but NOT platform-tools\xxx
+            if ($inc -match '^Tools\\') {
+              $node.ParentNode.RemoveChild($node) | Out-Null
+              $removed++
+              Write-Host "  Removed: $inc"
+            }
           }
           Write-Host "Removed $removed Tools Content references from csproj"
 
           # 2. Set WindowsPackageType to MSIX in the first PropertyGroup
-          $propGroup = $xml.SelectSingleNode("//m:PropertyGroup[1]", $ns)
-          $wpt = $propGroup.SelectSingleNode("m:WindowsPackageType", $ns)
+          $propGroup = $xml.SelectSingleNode("//PropertyGroup[1]")
+          if (-not $propGroup) {
+            Write-Error "No PropertyGroup found in csproj"
+            exit 1
+          }
+          $wpt = $propGroup.SelectSingleNode("WindowsPackageType")
           if ($wpt) {
             $wpt.InnerText = "MSIX"
             Write-Host "Changed WindowsPackageType to MSIX"
           } else {
-            $wpt = $xml.CreateElement("WindowsPackageType", $xml.DocumentElement.NamespaceURI)
+            $wpt = $xml.CreateElement("WindowsPackageType")
             $wpt.InnerText = "MSIX"
             $propGroup.AppendChild($wpt) | Out-Null
             Write-Host "Added WindowsPackageType=MSIX"
