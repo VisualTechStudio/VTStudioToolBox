@@ -98,6 +98,20 @@ jobs:
             Write-Warning "platform-tools/ directory not found"
           }
 
+      - name: Patch app.manifest for MSIX compatibility
+        shell: pwsh
+        run: |
+          # MSIX does not support requireAdministrator — change to asInvoker
+          $manifest = "app.manifest"
+          $content = Get-Content $manifest -Raw
+          if ($content -match 'requireAdministrator') {
+            $content = $content -replace 'requireAdministrator', 'asInvoker'
+            Set-Content $manifest -Value $content -NoNewline
+            Write-Host "Patched app.manifest: requireAdministrator -> asInvoker"
+          } else {
+            Write-Host "app.manifest already uses asInvoker (or different level)"
+          }
+
       - name: Patch csproj for Store MSIX
         shell: pwsh
         run: |
@@ -138,6 +152,7 @@ jobs:
           Write-Host "csproj patched successfully"
 
       - name: Generate self-signed certificate
+        id: cert
         shell: pwsh
         run: |
           $certPwd = ConvertTo-SecureString -String "CIBuild" -Force -AsPlainText
@@ -151,15 +166,20 @@ jobs:
           $pfxPath = Join-Path $env:GITHUB_WORKSPACE "CI_Build_Signing.pfx"
           Export-PfxCertificate -Cert $cert -FilePath $pfxPath -Password $certPwd -Force | Out-Null
 
+          # Also install cert to Trusted Root so MSIX is trusted on this runner
+          $trustedRoot = "Cert:\LocalMachine\Root"
+          $codeAuth = "Cert:\LocalMachine\TrustedPublisher"
+          Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation $trustedRoot -Password $certPwd -Exportable | Out-Null
+          Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation $codeAuth -Password $certPwd -Exportable | Out-Null
+
           Write-Host "Generated certificate: $($cert.Thumbprint)"
-          Write-Host "PFX exported to: $pfxPath"
+          Write-Host "Installed to Trusted Root and Trusted Publisher stores"
 
           echo "cert_thumbprint=$($cert.Thumbprint)" >> $env:GITHUB_OUTPUT
           echo "cert_pfx_path=$pfxPath" >> $env:GITHUB_OUTPUT
           echo "cert_password=CIBuild" >> $env:GITHUB_OUTPUT
-        id: cert
 
-      - name: Build MSIX with StoreUpload + self-sign
+      - name: Build and Publish MSIX (StoreUpload)
         id: build
         shell: pwsh
         run: |
@@ -167,15 +187,15 @@ jobs:
           $arch = "${{ matrix.arch }}"
           $rid = "${{ matrix.rid }}"
           $thumbprint = "${{ steps.cert.outputs.cert_thumbprint }}"
-          $pfxPath = "${{ steps.cert.outputs.cert_pfx_path }}"
           $pfxPassword = "${{ steps.cert.outputs.cert_password }}"
 
           # Restore
           dotnet restore VTStudioToolBox.csproj -p:Platform=$platform -r $rid
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
-          # Build with StoreUpload properties — do NOT use -o (let MSBuild use default AppPackages output)
-          dotnet build VTStudioToolBox.csproj -c Release `
+          # Publish — this triggers the full WindowsAppSDK chain:
+          #   Build → GenerateAppxPackage → GenerateAppxBundle → .msixupload
+          dotnet publish VTStudioToolBox.csproj -c Release `
             -p:Platform=$platform `
             -p:RuntimeIdentifier=$rid `
             -p:SelfContained=true `
@@ -190,19 +210,34 @@ jobs:
             -p:AppxTestStoreUpload=true
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
-          # Search for generated .msixupload (may be in AppPackages or bin)
-          $msixupload = Get-ChildItem -Path . -Filter "*.msixupload" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          # Search for ALL generated packages
+          Write-Host "`n=== Generated MSIX artifacts ==="
+          $allMsix = Get-ChildItem -Path . -Include "*.msix","*.msixbundle","*.msixupload" -Recurse -ErrorAction SilentlyContinue
+          $allMsix | ForEach-Object {
+            Write-Host "  $($_.FullName) ($([math]::Round($_.Length/1MB,2)) MB)"
+          }
+
+          $msixupload = $allMsix | Where-Object { $_.Extension -eq ".msixupload" } | Select-Object -First 1
+          $msixbundle = $allMsix | Where-Object { $_.Extension -eq ".msixbundle" } | Select-Object -First 1
+          $msixfiles = $allMsix | Where-Object { $_.Extension -eq ".msix" }
+
           if ($msixupload) {
-            Write-Host "Found .msixupload: $($msixupload.FullName)"
+            Write-Host "`nFound .msixupload: $($msixupload.FullName)"
             echo "msixupload_path=$($msixupload.FullName)" >> $env:GITHUB_OUTPUT
             echo "has_msixupload=true" >> $env:GITHUB_OUTPUT
           } else {
-            Write-Warning "No .msixupload found. Searching for .msix and .appxbundle..."
+            Write-Warning "No .msixupload generated"
             echo "has_msixupload=false" >> $env:GITHUB_OUTPUT
-            Get-ChildItem -Path . -Include "*.msix","*.msixbundle","*.appxbundle","*.msixupload" -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
-              Write-Host "  Found: $($_.FullName) ($([math]::Round($_.Length/1MB,2)) MB)"
-            }
           }
+
+          if ($msixbundle) {
+            echo "msixbundle_path=$($msixbundle.FullName)" >> $env:GITHUB_OUTPUT
+            echo "has_msixbundle=true" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "has_msixbundle=false" >> $env:GITHUB_OUTPUT
+          }
+
+          echo "msix_count=$($msixfiles.Count)" >> $env:GITHUB_OUTPUT
 
       - name: Upload MSIX artifacts
         uses: actions/upload-artifact@v4
@@ -212,7 +247,6 @@ jobs:
             **/*.msixupload
             **/*.msixbundle
             **/*.msix
-            **/*.appxupload
           if-no-files-found: warn
 
   release:
@@ -256,29 +290,28 @@ jobs:
           version="${{ steps.version.outputs.version }}"
           build_num="${{ steps.version.outputs.build_num }}"
           prefix="StoreBuild_VTStudioToolBox_${version}_${build_num}"
-
           has_files=false
 
-          # Copy and rename .msixupload
+          # .msixupload (Store submission bundle)
           for f in $(find artifacts -name "*.msixupload" -type f); do
             cp "$f" "${prefix}.msixupload"
-            echo "Release file: ${prefix}.msixupload ($(du -h "$f" | cut -f1))"
+            echo "Release: ${prefix}.msixupload ($(du -h "$f" | cut -f1))"
             has_files=true
           done
 
-          # Copy and rename .msixbundle
+          # .msixbundle (multi-arch bundle)
           for f in $(find artifacts -name "*.msixbundle" -type f); do
             cp "$f" "${prefix}.msixbundle"
-            echo "Release file: ${prefix}.msixbundle ($(du -h "$f" | cut -f1))"
+            echo "Release: ${prefix}.msixbundle ($(du -h "$f" | cut -f1))"
             has_files=true
           done
 
-          # Copy and rename individual .msix files
+          # Individual .msix files
           for f in $(find artifacts -name "*.msix" -type f); do
             arch=$(echo "$f" | grep -ioP '(x64|arm64)' | head -1 || echo "unknown")
             arch=$(echo "$arch" | tr '[:lower:]' '[:upper:]')
             cp "$f" "${prefix}_${arch}.msix"
-            echo "Release file: ${prefix}_${arch}.msix ($(du -h "$f" | cut -f1))"
+            echo "Release: ${prefix}_${arch}.msix ($(du -h "$f" | cut -f1))"
             has_files=true
           done
 
@@ -305,7 +338,7 @@ jobs:
 
             ### Store Build
             This build **excludes** the Tools directory (实用工具) — suitable for Microsoft Store submission.
-            Packages are **self-signed** with a CI-generated test certificate for local sideloading.
+            Packages are **self-signed** with a CI-generated test certificate.
 
             ### Downloads
             | File | Description |
@@ -314,10 +347,11 @@ jobs:
             | `*.msixbundle` | Multi-architecture bundle (for sideloading) |
             | `*.msix` | Individual architecture MSIX package |
 
-            ### Install for testing
-            1. Download the `.msix` or `.msixbundle` file
-            2. Double-click to install (self-signed certificate allows local testing)
-            3. Or use: `Add-AppxPackage -Path <file>.msix`
+            ### How to install (sideloading)
+            1. Enable **Developer Mode**: Settings → Privacy & Security → For developers → Developer Mode ON
+            2. Download the `.msix` or `.msixbundle` file
+            3. Right-click → Properties → Digital Signatures → Select certificate → View Certificate → **Install Certificate** → Local Machine → **Trusted Root Certification Authorities**
+            4. Double-click the `.msix` file to install
           prerelease: false
           files: |
             StoreBuild_*.msixupload
