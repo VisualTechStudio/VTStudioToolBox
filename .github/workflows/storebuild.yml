@@ -87,12 +87,10 @@ jobs:
       - name: Delete Tools (keep platform-tools)
         shell: pwsh
         run: |
-          # Remove all contents under Tools/ but preserve the directory itself
           if (Test-Path "Tools") {
             Get-ChildItem "Tools" -Recurse | Remove-Item -Recurse -Force
             Write-Host "Cleared Tools/ directory contents"
           }
-          # Verify platform-tools still exists
           if (Test-Path "platform-tools") {
             $count = (Get-ChildItem "platform-tools" -Recurse -File).Count
             Write-Host "platform-tools/ preserved ($count files)"
@@ -106,12 +104,11 @@ jobs:
           $csproj = "VTStudioToolBox.csproj"
           $xml = [xml](Get-Content $csproj -Raw)
 
-          # 1. Remove all Tools Content references (SDK-style csproj has no namespace)
+          # 1. Remove all Tools Content references
           $allContent = $xml.SelectNodes("//Content[@Include]")
           $removed = 0
           foreach ($node in $allContent) {
             $inc = $node.GetAttribute("Include")
-            # Match Tools\xxx but NOT platform-tools\xxx
             if ($inc -match '^Tools\\') {
               $node.ParentNode.RemoveChild($node) | Out-Null
               $removed++
@@ -120,7 +117,7 @@ jobs:
           }
           Write-Host "Removed $removed Tools Content references from csproj"
 
-          # 2. Set WindowsPackageType to MSIX in the first PropertyGroup
+          # 2. Set WindowsPackageType to MSIX
           $propGroup = $xml.SelectSingleNode("//PropertyGroup[1]")
           if (-not $propGroup) {
             Write-Error "No PropertyGroup found in csproj"
@@ -140,18 +137,44 @@ jobs:
           $xml.Save($csproj)
           Write-Host "csproj patched successfully"
 
-      - name: Build with MSBuild (StoreUpload)
+      - name: Generate self-signed certificate
+        shell: pwsh
+        run: |
+          $pwd = ConvertTo-SecureString -String "CIBuild" -Force -AsPlainText
+          $cert = New-SelfSignedCertificate `
+            -Type CodeSigningCert `
+            -Subject "CN=VTStudioToolBox CI Build" `
+            -CertStoreLocation "Cert:\CurrentUser\My" `
+            -NotAfter (Get-Date).AddYears(1) `
+            -KeyUsage DigitalSignature
+
+          $pfxPath = Join-Path $PWD "CI_Build_Signing.pfx"
+          Export-PfxCertificate -Cert $cert -FilePath $pfxPath -Password $pwd -Force | Out-Null
+
+          Write-Host "Generated certificate: $($cert.Thumbprint)"
+          Write-Host "PFX exported to: $pfxPath"
+
+          echo "cert_thumbprint=$($cert.Thumbprint)" >> $env:GITHUB_OUTPUT
+          echo "cert_pfx_path=$pfxPath" >> $env:GITHUB_OUTPUT
+          echo "cert_password=CIBuild" >> $env:GITHUB_OUTPUT
+        id: cert
+
+      - name: Build MSIX with StoreUpload + self-sign
+        id: build
         shell: pwsh
         run: |
           $platform = "${{ matrix.dotnet_platform }}"
           $arch = "${{ matrix.arch }}"
           $rid = "${{ matrix.rid }}"
+          $thumbprint = "${{ steps.cert.outputs.cert_thumbprint }}"
+          $pfxPath = "${{ steps.cert.outputs.cert_pfx_path }}"
+          $pfxPassword = "${{ steps.cert.outputs.cert_password }}"
 
-          # Restore NuGet packages (explicit csproj to avoid slnx RID restriction)
+          # Restore
           dotnet restore VTStudioToolBox.csproj -p:Platform=$platform -r $rid
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
-          # Build with MSBuild properties for Store packaging
+          # Build with StoreUpload properties — do NOT use -o (let MSBuild use default AppPackages output)
           dotnet build VTStudioToolBox.csproj -c Release `
             -p:Platform=$platform `
             -p:RuntimeIdentifier=$rid `
@@ -160,27 +183,37 @@ jobs:
             -p:UapAppxPackageBuildMode=StoreUpload `
             -p:AppxBundle=Always `
             -p:AppxBundlePlatforms="$arch" `
-            -p:GenerateAppxPackageOnBuild=true
+            -p:GenerateAppxPackageOnBuild=true `
+            -p:AppxPackageSigningEnabled=true `
+            -p:PackageCertificateThumbprint=$thumbprint `
+            -p:PackageCertificatePassword=$pfxPassword `
+            -p:AppxTestStoreUpload=true
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
-          # Find generated .msixupload file
-          $msixupload = Get-ChildItem -Path . -Filter "*.msixupload" -Recurse | Select-Object -First 1
+          # Search for generated .msixupload (may be in AppPackages or bin)
+          $msixupload = Get-ChildItem -Path . -Filter "*.msixupload" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($msixupload) {
-            Write-Host "Found msixupload: $($msixupload.FullName)"
+            Write-Host "Found .msixupload: $($msixupload.FullName)"
             echo "msixupload_path=$($msixupload.FullName)" >> $env:GITHUB_OUTPUT
+            echo "has_msixupload=true" >> $env:GITHUB_OUTPUT
           } else {
-            Write-Warning "No .msixupload found, looking for .msix files..."
-            Get-ChildItem -Path . -Filter "*.msix" -Recurse | ForEach-Object { Write-Host "  $_" }
+            Write-Warning "No .msixupload found. Searching for .msix and .appxbundle..."
+            echo "has_msixupload=false" >> $env:GITHUB_OUTPUT
+            Get-ChildItem -Path . -Include "*.msix","*.msixbundle","*.appxbundle","*.msixupload" -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
+              Write-Host "  Found: $($_.FullName) ($([math]::Round($_.Length/1MB,2)) MB)"
+            }
           }
 
-      - name: Upload MSIX artifact
+      - name: Upload MSIX artifacts
         uses: actions/upload-artifact@v4
         with:
           name: StoreBuild_${{ matrix.arch }}
           path: |
             **/*.msixupload
+            **/*.msixbundle
             **/*.msix
             **/*.appxupload
+          if-no-files-found: warning
 
   release:
     needs: build
@@ -213,42 +246,45 @@ jobs:
           pattern: StoreBuild_*
           merge-multiple: true
 
-      - name: List downloaded artifacts
-        run: find artifacts -type f | head -50
+      - name: List all downloaded files
+        run: find artifacts -type f -printf '%s %p\n' | sort -rn
 
-      - name: Rename artifacts
-        id: rename
+      - name: Prepare release files
+        id: prepare
         shell: bash
         run: |
           version="${{ steps.version.outputs.version }}"
           build_num="${{ steps.version.outputs.build_num }}"
-          renamed=()
+          prefix="StoreBuild_VTStudioToolBox_${version}_${build_num}"
 
-          # Rename .msixupload files
+          has_files=false
+
+          # Copy and rename .msixupload
           for f in $(find artifacts -name "*.msixupload" -type f); do
-            arch=$(echo "$f" | grep -ioP '(x64|arm64)' | head -1 || echo "bundle")
-            arch=$(echo "$arch" | tr '[:lower:]' '[:upper:]')
-            dest="StoreBuild_VTStudioToolBox_${version}_${build_num}_${arch}.msixupload"
-            cp "$f" "$dest"
-            renamed+=("$dest")
-            echo "Renamed: $dest"
+            cp "$f" "${prefix}.msixupload"
+            echo "Release file: ${prefix}.msixupload ($(du -h "$f" | cut -f1))"
+            has_files=true
           done
 
-          # Rename individual .msix files
+          # Copy and rename .msixbundle
+          for f in $(find artifacts -name "*.msixbundle" -type f); do
+            cp "$f" "${prefix}.msixbundle"
+            echo "Release file: ${prefix}.msixbundle ($(du -h "$f" | cut -f1))"
+            has_files=true
+          done
+
+          # Copy and rename individual .msix files
           for f in $(find artifacts -name "*.msix" -type f); do
             arch=$(echo "$f" | grep -ioP '(x64|arm64)' | head -1 || echo "unknown")
             arch=$(echo "$arch" | tr '[:lower:]' '[:upper:]')
-            dest="StoreBuild_VTStudioToolBox_${version}_${build_num}_${arch}.msix"
-            cp "$f" "$dest"
-            renamed+=("$dest")
-            echo "Renamed: $dest"
+            cp "$f" "${prefix}_${arch}.msix"
+            echo "Release file: ${prefix}_${arch}.msix ($(du -h "$f" | cut -f1))"
+            has_files=true
           done
 
-          if [ ${#renamed[@]} -eq 0 ]; then
-            echo "has_files=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_files=true" >> $GITHUB_OUTPUT
-          fi
+          echo "has_files=${has_files}" >> $GITHUB_OUTPUT
+          echo "---"
+          ls -lh StoreBuild_* 2>/dev/null || echo "No release files found"
 
       - name: Delete existing release if present
         continue-on-error: true
@@ -257,7 +293,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
-        if: steps.rename.outputs.has_files == 'true'
+        if: steps.prepare.outputs.has_files == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
@@ -269,17 +305,21 @@ jobs:
 
             ### Store Build
             This build **excludes** the Tools directory (实用工具) — suitable for Microsoft Store submission.
+            Packages are **self-signed** with a CI-generated test certificate for local sideloading.
 
             ### Downloads
             | File | Description |
             |------|-------------|
             | `*.msixupload` | Store submission bundle (for Microsoft Partner Center) |
-            | `*.msix` | Individual MSIX package (for sideloading / testing) |
+            | `*.msixbundle` | Multi-architecture bundle (for sideloading) |
+            | `*.msix` | Individual architecture MSIX package |
 
-            ### Notes
-            - `.msixupload` is the format required by Microsoft Partner Center for Store submission
-            - Individual `.msix` files can be sideloaded for testing
+            ### Install for testing
+            1. Download the `.msix` or `.msixbundle` file
+            2. Double-click to install (self-signed certificate allows local testing)
+            3. Or use: `Add-AppxPackage -Path <file>.msix`
           prerelease: false
           files: |
             StoreBuild_*.msixupload
+            StoreBuild_*.msixbundle
             StoreBuild_*.msix
