@@ -12,7 +12,6 @@
 		<EnableMsixTooling>true</EnableMsixTooling>
 		<Nullable>enable</Nullable>
 		<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-		<WindowsPackageType>None</WindowsPackageType>
 		<SelfContained>true</SelfContained>
 		<EnableDefaultEmbeddedResourceItems>true</EnableDefaultEmbeddedResourceItems>
 		<PublishSingleFile>false</PublishSingleFile>
@@ -94,8 +93,8 @@
 		<PackageReference Include="System.Management" Version="10.0.2" />
 	</ItemGroup>
 
-	<!-- 工具文件 - 使用通配符简化包含 -->
-	<ItemGroup>
+	<!-- 工具文件 - 使用通配符简化包含 (Store build 可通过 ExcludeToolsContent=true 排除) -->
+	<ItemGroup Condition="'$(ExcludeToolsContent)'!='true'">
 		<!-- 顶层工具 -->
 		<Content Include="Tools\cpuz_x64.exe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -168,7 +167,10 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<!-- ADB Platform Tools -->
+	</ItemGroup>
+
+	<!-- ADB Platform Tools (始终包含) -->
+	<ItemGroup>
 		<Content Include="platform-tools\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

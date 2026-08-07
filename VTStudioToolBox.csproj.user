@@ -6,7 +6,8 @@
     <UnoRemoteControlPort>0</UnoRemoteControlPort>
     <UnoVSCodeCSharpExtension>muhammad-sammy.csharp 2.130.6-g84650eb758</UnoVSCodeCSharpExtension>
     <UnoVSCodeCSharpDevKitExtension>ms-dotnettools.csdevkit unknown</UnoVSCodeCSharpDevKitExtension>
-    <ActiveDebugProfile>VTStudioToolBox (Unpackaged)</ActiveDebugProfile>
+    <ActiveDebugProfile>VTStudioToolBox (Package)</ActiveDebugProfile>
+    <_LastSelectedProfileId>C:\Users\t3228\source\repos\VisualTechStudio\VTStudioToolBox\Properties\PublishProfiles\win-x64.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
