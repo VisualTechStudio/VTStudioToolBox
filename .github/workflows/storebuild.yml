@@ -84,44 +84,86 @@ jobs:
           echo "build_num=$buildNum"         >> $env:GITHUB_OUTPUT
           echo "short_sha=$shortSha"         >> $env:GITHUB_OUTPUT
 
-      - name: Build MSIX package (without Tools)
+      - name: Delete Tools (keep platform-tools)
         shell: pwsh
         run: |
-          $outDir = "publish_${{ matrix.arch }}_MSIX"
-          $platform = "${{ matrix.dotnet_platform }}"
-
-          # Build with MSIX packaging, excluding Tools directory content
-          $publishArgs = @(
-            "publish", "-c", "Release",
-            "-p:Platform=$platform",
-            "-p:SelfContained=true",
-            "-p:RuntimeIdentifier=${{ matrix.rid }}",
-            "-p:GenerateAppxPackageOnBuild=true",
-            "-p:AppxPackageDir=$outDir",
-            "-o", $outDir
-          )
-
-          # Exclude Tools content by overriding the ItemGroup
-          # We set a property to conditionally skip Tools inclusion
-          $publishArgs += "-p:ExcludeToolsContent=true"
-
-          & dotnet @publishArgs
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-
-          # Remove Tools directory from output if it was copied
-          $toolsDir = Join-Path $outDir "Tools"
-          if (Test-Path $toolsDir) {
-            Remove-Item $toolsDir -Recurse -Force
-            Write-Host "Removed Tools directory from output"
+          # Remove all contents under Tools/ but preserve the directory itself
+          if (Test-Path "Tools") {
+            Get-ChildItem "Tools" -Recurse | Remove-Item -Recurse -Force
+            Write-Host "Cleared Tools/ directory contents"
+          }
+          # Verify platform-tools still exists
+          if (Test-Path "platform-tools") {
+            $count = (Get-ChildItem "platform-tools" -Recurse -File).Count
+            Write-Host "platform-tools/ preserved ($count files)"
+          } else {
+            Write-Warning "platform-tools/ directory not found"
           }
 
-          # Find generated .msix file
-          $msixFiles = Get-ChildItem -Path $outDir -Filter "*.msix" -Recurse
-          if ($msixFiles.Count -eq 0) {
-            Write-Warning "No .msix file found in $outDir"
+      - name: Patch csproj for Store MSIX
+        shell: pwsh
+        run: |
+          $csproj = "VTStudioToolBox.csproj"
+          $xml = [xml](Get-Content $csproj -Raw)
+          $ns = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+          $ns.AddNamespace("m", "http://schemas.microsoft.com/developer/msbuild/2003")
+
+          # 1. Remove all Tools\ Content references
+          $contentNodes = $xml.SelectNodes("//m:Content[contains(@Include, 'Tools\')]", $ns)
+          $removed = 0
+          foreach ($node in $contentNodes) {
+            $node.ParentNode.RemoveChild($node) | Out-Null
+            $removed++
+          }
+          Write-Host "Removed $removed Tools Content references from csproj"
+
+          # 2. Set WindowsPackageType to MSIX in the first PropertyGroup
+          $propGroup = $xml.SelectSingleNode("//m:PropertyGroup[1]", $ns)
+          $wpt = $propGroup.SelectSingleNode("m:WindowsPackageType", $ns)
+          if ($wpt) {
+            $wpt.InnerText = "MSIX"
+            Write-Host "Changed WindowsPackageType to MSIX"
           } else {
-            Write-Host "Found MSIX packages:"
-            $msixFiles | ForEach-Object { Write-Host "  $_" }
+            $wpt = $xml.CreateElement("WindowsPackageType", $xml.DocumentElement.NamespaceURI)
+            $wpt.InnerText = "MSIX"
+            $propGroup.AppendChild($wpt) | Out-Null
+            Write-Host "Added WindowsPackageType=MSIX"
+          }
+
+          $xml.Save($csproj)
+          Write-Host "csproj patched successfully"
+
+      - name: Build with MSBuild (StoreUpload)
+        shell: pwsh
+        run: |
+          $platform = "${{ matrix.dotnet_platform }}"
+          $arch = "${{ matrix.arch }}"
+          $rid = "${{ matrix.rid }}"
+
+          # Restore NuGet packages first
+          dotnet restore -p:Platform=$platform -r $rid
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+          # Build with MSBuild properties for Store packaging
+          dotnet build -c Release `
+            -p:Platform=$platform `
+            -p:RuntimeIdentifier=$rid `
+            -p:SelfContained=true `
+            -p:WindowsPackageType=MSIX `
+            -p:UapAppxPackageBuildMode=StoreUpload `
+            -p:AppxBundle=Always `
+            -p:AppxBundlePlatforms="$arch" `
+            -p:GenerateAppxPackageOnBuild=true
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+          # Find generated .msixupload file
+          $msixupload = Get-ChildItem -Path . -Filter "*.msixupload" -Recurse | Select-Object -First 1
+          if ($msixupload) {
+            Write-Host "Found msixupload: $($msixupload.FullName)"
+            echo "msixupload_path=$($msixupload.FullName)" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Warning "No .msixupload found, looking for .msix files..."
+            Get-ChildItem -Path . -Filter "*.msix" -Recurse | ForEach-Object { Write-Host "  $_" }
           }
 
       - name: Upload MSIX artifact
@@ -129,15 +171,16 @@ jobs:
         with:
           name: StoreBuild_${{ matrix.arch }}
           path: |
-            publish_${{ matrix.arch }}_MSIX/**/*.msix
-            publish_${{ matrix.arch }}_MSIX/**/*.appx
+            **/*.msixupload
+            **/*.msix
+            **/*.appxupload
 
   release:
     needs: build
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    name: Create Store Release (.msixupload)
+    name: Create Store Release
 
     steps:
       - name: Checkout
@@ -145,26 +188,18 @@ jobs:
 
       - name: Extract version
         id: version
-        shell: pwsh
+        shell: bash
         run: |
-          $cs = Get-Content "cfg.cs" -Raw
-          if ($cs -match 'AppVersion\s*=\s*"\[Release\]\s+(\S+)"') {
-            $version = $Matches[1].Trim()
-          } else {
-            $version = "0.0.0"
-          }
-          $now = [System.TimeZoneInfo]::ConvertTimeFromUtc(
-            [DateTime]::UtcNow,
-            [System.TimeZoneInfo]::FindSystemTimeZoneById("China Standard Time"))
-          $buildNum = $now.ToString("yyMMddHHmm")
-          $shortSha = "${{ github.sha }}".Substring(0, 7)
-          echo "version=$version"            >> $env:GITHUB_OUTPUT
-          echo "build_num=$buildNum"         >> $env:GITHUB_OUTPUT
-          echo "short_sha=$shortSha"         >> $env:GITHUB_OUTPUT
-          echo "tag=store-v$version"         >> $env:GITHUB_OUTPUT
-          echo "name=[Store Build] Release $version (Build.$buildNum)" >> $env:GITHUB_OUTPUT
+          version=$(grep -oP 'AppVersion\s*=\s*"\[Release\]\s+\K\S+' cfg.cs | tr -d ' ')
+          build_num=$(TZ='Asia/Shanghai' date +'%y%m%d%H%M')
+          short_sha="${GITHUB_SHA:0:7}"
+          echo "version=${version}" >> $GITHUB_OUTPUT
+          echo "build_num=${build_num}" >> $GITHUB_OUTPUT
+          echo "tag=store-v${version}" >> $GITHUB_OUTPUT
+          echo "name=[Store Build] Release ${version} (Build.${build_num})" >> $GITHUB_OUTPUT
+          echo "short_sha=${short_sha}" >> $GITHUB_OUTPUT
 
-      - name: Download all MSIX artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -172,85 +207,41 @@ jobs:
           merge-multiple: true
 
       - name: List downloaded artifacts
-        shell: pwsh
-        run: Get-ChildItem -Path artifacts -Recurse | Format-Table FullName, Length
+        run: find artifacts -type f | head -50
 
-      - name: Find MSIX files
-        id: msix
-        shell: pwsh
+      - name: Rename artifacts
+        id: rename
+        shell: bash
         run: |
-          $msixFiles = Get-ChildItem -Path artifacts -Filter "*.msix" -Recurse
-          if ($msixFiles.Count -eq 0) {
-            Write-Warning "No .msix files found"
-            echo "has_msix=false" >> $env:GITHUB_OUTPUT
-          } else {
-            echo "has_msix=true" >> $env:GITHUB_OUTPUT
-            echo "Found $($msixFiles.Count) MSIX file(s):"
-            $msixFiles | ForEach-Object { Write-Host "  $($_.FullName)" }
-          }
+          version="${{ steps.version.outputs.version }}"
+          build_num="${{ steps.version.outputs.build_num }}"
+          renamed=()
 
-      - name: Create .msixupload bundle
-        if: steps.msix.outputs.has_msix == 'true'
-        shell: pwsh
-        run: |
-          $version = "${{ steps.version.outputs.version }}"
-          $buildNum = "${{ steps.version.outputs.build_num }}"
-          $uploadName = "StoreBuild_VTStudioToolBox_${version}_${buildNum}"
+          # Rename .msixupload files
+          for f in $(find artifacts -name "*.msixupload" -type f); do
+            arch=$(echo "$f" | grep -ioP '(x64|arm64)' | head -1 || echo "bundle")
+            arch=$(echo "$arch" | tr '[:lower:]' '[:upper:]')
+            dest="StoreBuild_VTStudioToolBox_${version}_${build_num}_${arch}.msixupload"
+            cp "$f" "$dest"
+            renamed+=("$dest")
+            echo "Renamed: $dest"
+          done
 
-          # Create upload directory
-          $uploadDir = "msix_upload"
-          New-Item -ItemType Directory -Path $uploadDir -Force | Out-Null
+          # Rename individual .msix files
+          for f in $(find artifacts -name "*.msix" -type f); do
+            arch=$(echo "$f" | grep -ioP '(x64|arm64)' | head -1 || echo "unknown")
+            arch=$(echo "$arch" | tr '[:lower:]' '[:upper:]')
+            dest="StoreBuild_VTStudioToolBox_${version}_${build_num}_${arch}.msix"
+            cp "$f" "$dest"
+            renamed+=("$dest")
+            echo "Renamed: $dest"
+          done
 
-          # Copy MSIX files to upload directory
-          $msixFiles = Get-ChildItem -Path artifacts -Filter "*.msix" -Recurse
-          foreach ($f in $msixFiles) {
-            Copy-Item $f.FullName $uploadDir -Force
-            Write-Host "Copied: $($f.Name)"
-          }
-
-          # Also copy .appx files if any
-          $appxFiles = Get-ChildItem -Path artifacts -Filter "*.appx" -Recurse
-          foreach ($f in $appxFiles) {
-            Copy-Item $f.FullName $uploadDir -Force
-            Write-Host "Copied: $($f.Name)"
-          }
-
-          # Create uploadmapping.txt for Store submission
-          $mappingFile = Join-Path $uploadDir "uploadmapping.txt"
-          $mappingContent = @"
-; MSIX Upload Mapping File
-; Generated by CI Build
-; Version: $version
-; Build: $buildNum
-"@
-
-          $msixFiles = Get-ChildItem -Path $uploadDir -Filter "*.msix"
-          $appxFiles = Get-ChildItem -Path $uploadDir -Filter "*.appx"
-
-          foreach ($f in @($msixFiles) + @($appxFiles)) {
-            if ($f) {
-              $mappingContent += "`nPackage_$($f.Name)=$($f.Name)"
-            }
-          }
-
-          Set-Content -Path $mappingFile -Value $mappingContent -Encoding UTF8
-
-          # Create .msixupload (zip with custom extension)
-          $msixuploadPath = "${uploadName}.msixupload"
-          Compress-Archive -Path "$uploadDir/*" -DestinationPath $msixuploadPath -Force
-
-          Write-Host "Created MSIX upload package: $msixuploadPath"
-          ls $msixuploadPath
-
-          # Also keep individual .msix files for direct download
-          $version  = "${{ steps.version.outputs.version }}"
-          $buildNum = "${{ steps.version.outputs.build_num }}"
-          foreach ($f in $msixFiles) {
-            $arch = if ($f.Name -match "x64|X64") { "X64" } elseif ($f.Name -match "arm64|ARM64") { "ARM64" } else { "Any" }
-            $destName = "StoreBuild_VTStudioToolBox_${version}_${buildNum}_${arch}.msix"
-            Copy-Item $f.FullName $destName -Force
-            Write-Host "Created: $destName"
-          }
+          if [ ${#renamed[@]} -eq 0 ]; then
+            echo "has_files=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_files=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Delete existing release if present
         continue-on-error: true
@@ -259,6 +250,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
+        if: steps.rename.outputs.has_files == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
@@ -274,9 +266,8 @@ jobs:
             ### Downloads
             | File | Description |
             |------|-------------|
-            | `*.msixupload` | Store submission bundle (contains both architectures) |
-            | `*_X64.msix` | Individual x64 MSIX package |
-            | `*_ARM64.msix` | Individual ARM64 MSIX package |
+            | `*.msixupload` | Store submission bundle (for Microsoft Partner Center) |
+            | `*.msix` | Individual MSIX package (for sideloading / testing) |
 
             ### Notes
             - `.msixupload` is the format required by Microsoft Partner Center for Store submission
