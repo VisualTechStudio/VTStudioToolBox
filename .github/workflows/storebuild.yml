@@ -147,12 +147,12 @@ jobs:
           $arch = "${{ matrix.arch }}"
           $rid = "${{ matrix.rid }}"
 
-          # Restore NuGet packages first
-          dotnet restore -p:Platform=$platform -r $rid
+          # Restore NuGet packages (explicit csproj to avoid slnx RID restriction)
+          dotnet restore VTStudioToolBox.csproj -p:Platform=$platform -r $rid
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
           # Build with MSBuild properties for Store packaging
-          dotnet build -c Release `
+          dotnet build VTStudioToolBox.csproj -c Release `
             -p:Platform=$platform `
             -p:RuntimeIdentifier=$rid `
             -p:SelfContained=true `
