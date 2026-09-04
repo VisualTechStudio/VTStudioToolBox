@@ -68,9 +68,9 @@ namespace VTStudioToolBox.Views
             ActualThemeChanged += OnActualThemeChanged;
             SubscribeWindowMove();
             UpdateWelcomeMessage();
-            await LoadSystemInfoWithCacheAsync();
             StartBootTimer();
-            await InitHardwareMonitorAsync();
+            InitSensorGridPlaceholders();
+            await Task.WhenAll(LoadSystemInfoWithCacheAsync(), InitHardwareMonitorAsync());
         }
 
         private void DashboardPage_Unloaded(object sender, RoutedEventArgs e)
@@ -245,6 +245,33 @@ namespace VTStudioToolBox.Views
             Grid.SetRow(tb, row);
             Grid.SetColumn(tb, col);
             grid.Children.Add(tb);
+        }
+
+        private void InitSensorGridPlaceholders()
+        {
+            string ph = "--";
+            CpuSensorLabel.Text = "CPU";
+            FillSensorGrid(CpuSensorGrid, new[] {
+                (LanguageHelper.GetString("SensorFrequency"), ph),
+                (LanguageHelper.GetString("SensorMemFrequency"), ph),
+                (LanguageHelper.GetString("SensorUsage"), ph),
+                (LanguageHelper.GetString("SensorTemperature"), ph),
+                (LanguageHelper.GetString("SensorVoltage"), ph),
+                (LanguageHelper.GetString("SensorPower"), ph)
+            });
+            GpuSensorLabel.Text = "GPU";
+            FillSensorGrid(GpuSensorGrid, new[] {
+                (LanguageHelper.GetString("SensorCore"), ph),
+                (LanguageHelper.GetString("SensorVRAM"), ph),
+                (LanguageHelper.GetString("SensorUsage"), ph),
+                (LanguageHelper.GetString("SensorTemperature"), ph),
+                (LanguageHelper.GetString("SensorVoltage"), ph),
+                (LanguageHelper.GetString("SensorPower"), ph)
+            });
+            MemorySensorLabel.Text = LanguageHelper.GetString("LabelRAM").TrimEnd('：', ':');
+            FillSensorGrid(MemorySensorGrid, new[] { (LanguageHelper.GetString("SensorUsage"), ph) });
+            FanSensorLabel.Text = LanguageHelper.GetString("LabelFan").TrimEnd('：', ':');
+            MonitorBorder.Visibility = Visibility.Visible;
         }
 
         private void UpdateSensorData()

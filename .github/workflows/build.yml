@@ -15,6 +15,7 @@ jobs:
   build:
     runs-on: windows-latest
     name: Build ${{ matrix.arch }} (${{ matrix.build_type }})
+    environment: CI
 
     strategy:
       matrix:
@@ -94,6 +95,19 @@ jobs:
           echo "build_num=$buildNum"         >> $env:GITHUB_OUTPUT
           echo "short_sha=$shortSha"         >> $env:GITHUB_OUTPUT
 
+      - name: Generate secrets.json from CI secrets
+        shell: pwsh
+        run: |
+          $secrets = @{
+            GitHubClientId     = "${{ secrets.VTSTUDIO_GITHUB_CLIENT_ID }}"
+            GitHubClientSecret = "${{ secrets.VTSTUDIO_GITHUB_CLIENT_SECRET }}"
+            MicrosoftClientId  = "${{ secrets.VTSTUDIO_MICROSOFT_CLIENT_ID }}"
+            GoogleClientId     = "${{ secrets.VTSTUDIO_GOOGLE_CLIENT_ID }}"
+            SteamApiKey        = "${{ secrets.VTSTUDIO_STEAM_API_KEY }}"
+          }
+          $secrets | ConvertTo-Json | Set-Content -Path "secrets.json" -Encoding UTF8
+          Write-Host "Generated secrets.json from CI secrets"
+
       - name: Build
         shell: pwsh
         run: |
@@ -146,7 +160,8 @@ jobs:
             $requiredFiles = @(
               "platform-tools/adb.exe",
               "Strings/zh-CN.json",
-              "Assets/logo.png"
+              "Assets/logo.png",
+              "secrets.json"
             )
             foreach ($file in $requiredFiles) {
               $fullPath = Join-Path $outDir $file

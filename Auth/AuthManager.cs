@@ -21,12 +21,12 @@ public sealed class AuthManager : IAuthService
 
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(15) };
 
-    // ── OAuth client credentials ──
-    private const string GitHubClientId     = "Ov23liOecljE2PSFpuEp";
-    private const string GitHubClientSecret = "4a305c561cfc5ed6d9d07d17e3a4e15fc7d145b7";
-    private const string MicrosoftClientId  = "6e0b67e7-71e3-4c86-9d8a-3eda2e5ee463";
-    private const string GoogleClientId     = "3507472894-tvovumc8tljdpc2450brhj9pms9s5ata.apps.googleusercontent.com";
-    private const string SteamApiKey        = "AC18CA9E4229C4938886F10E49861EBD";
+    // ── OAuth client credentials (loaded from secrets.json) ──
+    private static string GitHubClientId     => SecretsConfig.GitHubClientId;
+    private static string GitHubClientSecret => SecretsConfig.GitHubClientSecret;
+    private static string MicrosoftClientId  => SecretsConfig.MicrosoftClientId;
+    private static string GoogleClientId     => SecretsConfig.GoogleClientId;
+    private static string SteamApiKey        => SecretsConfig.SteamApiKey;
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {

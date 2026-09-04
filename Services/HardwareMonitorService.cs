@@ -135,15 +135,10 @@ namespace VTStudioToolBox.Services
                 }
             }
 
-            // Filter out static VID values (same voltage on all cores = not actual voltage)
+            // Fallback to VID when no direct Vcore reading is available
             if (data.Voltage == "--" && vidValues.Count > 0)
             {
-                if (vidValues.Count > 1)
-                {
-                    // VID values vary across cores - use average
-                    data.Voltage = $"{vidValues.Average():F3} V";
-                }
-                // else: all VID values identical = static, leave as "--"
+                data.Voltage = $"{vidValues.Average():F3} V";
             }
 
             // Fallback: HWiNFO shared memory
@@ -260,6 +255,12 @@ namespace VTStudioToolBox.Services
             {
                 fans = HwInfoReader.GetFanData();
             }
+
+            // Fallback to WMI (works on some non-ASUS boards)
+            if (fans.Count == 0)
+            {
+                fans = GetFansFromWmi();
+            }
             return fans;
         }
 
@@ -306,6 +307,36 @@ namespace VTStudioToolBox.Services
                     fans.Add(new FanSensorData { Name = sensor.Name, Rpm = $"{sensor.Value:F0} RPM" });
                 }
             }
+        }
+
+        private static List<FanSensorData> GetFansFromWmi()
+        {
+            var fans = new List<FanSensorData>();
+            try
+            {
+                using var searcher = new ManagementObjectSearcher("SELECT Name, DesiredSpeed FROM Win32_Fan");
+                int index = 1;
+                foreach (ManagementObject obj in searcher.Get())
+                {
+                    var speed = obj["DesiredSpeed"];
+                    if (speed != null)
+                    {
+                        uint rpm = Convert.ToUInt32(speed);
+                        if (rpm > 0)
+                        {
+                            var name = obj["Name"]?.ToString();
+                            fans.Add(new FanSensorData
+                            {
+                                Name = string.IsNullOrWhiteSpace(name) ? $"Fan {index}" : name,
+                                Rpm = $"{rpm} RPM"
+                            });
+                            index++;
+                        }
+                    }
+                }
+            }
+            catch { }
+            return fans;
         }
 
         public MemorySensorData GetMemoryData()
