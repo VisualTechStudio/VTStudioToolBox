@@ -1,90 +1,114 @@
 # CLAUDE.md
 
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
+## 项目信息
 
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+- **项目名称**: VTStudioToolBox
+- **项目类型**: Windows桌面应用
+- **项目描述**: 集成系统信息检测与硬件工具管理的专业Windows工具箱
+- **技术栈**:
+  - .NET 10.0
+  - WinUI 3 (Windows App SDK 1.6)
+  - C#
+  - MVVM + 依赖注入架构
+- **主要功能模块**:
+  - 用户认证系统（GitHub/Microsoft/Steam OAuth）
+  - 系统信息检测（CPU/内存/显卡/主板/存储等）
+  - 实时硬件监控（CPU/GPU温度、频率、功耗等）
+  - 网络检测（NAT类型检测、STUN协议）
+  - 主题系统（跟随系统/深色/浅色）
+  - 工具集成中心（集成15+第三方硬件工具）
+- **开发环境**: Visual Studio 2022, .NET 10 SDK
+- **目标平台**: Windows 10 1809+, x86/x64/ARM64
 
-## 1. Think Before Coding
+## 1. 动手编写代码前先思考
 
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
+**不要盲目假设。不要隐瞒困惑。明确呈报权衡方案。**
 
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
+在实现功能之前：
 
-## 2. Simplicity First (Lazy Senior Dev Mode)
+* 明确列出你的假设。如果不确定，及时询问。
+* 如果存在多种理解方式，请一并列出 — 不要私自做出选择。
+* 如果存在更简单的方案，直接提出。必要时主动推翻不合理的方案。
+* 如果有任何不明确的地方，立即暂停。明确指出困惑所在并提问。
 
-**The best code is the code never written. Minimum code that solves the problem. Nothing speculative.**
+## 2. 简单至上（懒人资深开发者模式）
 
-Before writing any code, stop at the first rung that holds:
-1. Does this need to be built at all? (YAGNI)
-2. Does it already exist in this codebase? Reuse the helper, util, or pattern that's already here.
-3. Does the standard library already do this? Use it.
-4. Does a native platform feature cover it? Use it.
-5. Does an already-installed dependency solve it? Use it.
-6. Can this be one line? Make it one line.
-7. Only then: write the minimum code that works.
+**最好的代码是永远不需要编写的代码。用最少量的代码解决问题。拒绝任何预测性/推测性的代码。**
 
-The ladder runs *after* you understand the problem, not instead of it: read the task and the code it touches, trace the real flow end to end, then climb.
+在编写任何代码之前，在满足条件的最低层级停下：
 
-Additional rules:
-- No features beyond what was asked.
-- No abstractions for single-use code. No abstractions that weren't explicitly requested.
-- No "flexibility" or "configurability" that wasn't requested.
-- No new dependency if it can be avoided.
-- No boilerplate nobody asked for.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-- Deletion over addition. Boring over clever. Fewest files possible.
-- Shortest working diff wins, but only once you understand the problem. The smallest change in the wrong place isn't lazy, it's a second bug.
-- Question complex requests: "Do you actually need X, or does Y cover it?"
-- Pick the edge-case-correct option when two stdlib approaches are the same size, lazy means less code, not the flimsier algorithm.
-- Mark deliberate simplifications that cut a real corner with a known ceiling (global lock, O(n²) scan, naive heuristic) with a `ponytail:` comment naming the ceiling and upgrade path.
+1. 这东西真的需要构建吗？（YAGNI 原则：你不需要它）
+2. 项目代码库中是否已存在？复用现有的 helper、util 或设计模式。
+3. 标准库是否已经支持？直接使用标准库。
+4. 原生平台特性是否涵盖？直接使用平台特性。
+5. 已安装的依赖包能否解决？直接使用现有依赖。
+6. 能否用一行代码搞定？如果能，就写成一行。
+7. 只有在上述都不满足时：才去编写能实现功能的最少代码。
 
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+这个递进阶梯应当建立在你**完全理解问题之后**，而不是用来替代对问题的理解：仔细阅读任务要求及其关联的代码，逐行追溯真实的端到端执行流程，然后再逐级阶梯式思考。
 
-Lazy, not negligent: never cut input validation at trust boundaries, error handling that prevents data loss, security, accessibility, or anything explicitly requested. Non-trivial logic leaves ONE runnable check behind, the smallest thing that fails if the logic breaks. Trivial one-liners need no test.
+附加规则：
 
-## 3. Surgical Changes
+* 绝不添加未明确要求的额外功能。
+* 绝不对仅使用一次的代码进行抽象。绝不对未经明确要求的逻辑进行抽象。
+* 绝不添加未被要求的“灵活性”或“可配置性”。
+* 只要能避免，就绝不引入新的依赖包。
+* 绝不编写没人要求的样板代码（Boilerplate）。
+* 绝不对不可能发生的场景编写异常/错误处理。
+* 如果你写了 200 行代码，但实际上 50 行就能解决，那就重写。
+* 宁删勿加。宁要平铺直叙，不要炫技巧思。尽量减少文件数量。
+* 在彻底理解问题的前提下，改动行数最少（Diff 最短）的方案胜出。如果在错误的位置做极小的修改，这不是偷懒，而是制造第二个 Bug。
+* 质疑复杂的请求：“你真的需要 X 吗，还是说 Y 就能解决问题？”
+* 当两种标准库方案代码量相当时，选择能正确处理边界情况的那一个。这里的“懒”意味着更少的总代码量，而不是更脆弱的算法。
+* 对于为了切掉真实复杂边角且存在明确上限的故意简化（如使用全局锁、O(n²) 扫描、简易启发式算法），必须标注包含 `ponytail:` 的注释，指明性能上限与后续升级路径。
 
-**Touch only what you must. Clean up only your own mess.**
+问问自己：“资深工程师会觉得这写得过于复杂了吗？”如果是，就进行简化。
 
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
+是偷懒，而不是疏忽：绝不能在信任边界处裁减输入校验、防止数据丢失的错误处理、安全性、无障碍支持或任何明确要求的功能。非平凡的逻辑必须留下一项可运行的检查，即逻辑破坏时能够失败的最精简测试。微不足道的单行代码则无需测试。
 
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
+## 3. 外科手术式的精确修改
 
-The test: Every changed line should trace directly to the user's request.
+**只触碰必须修改的部分。只清理你自己产生的垃圾。**
 
-## 4. Goal-Driven Execution
+在修改现有代码时：
 
-**Define success criteria. Loop until verified.**
+* 不要去“顺便改进”相邻的代码、注释或格式。
+* 不要重构没有损坏的功能。
+* 保持已有的代码风格，即使你自己习惯不同的写法。
+* 如果注意到无关的废弃代码（Dead code），进行提请说明 — 不要直接动手删除。
 
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
+当你的修改导致了无用代码时：
 
-For multi-step tasks, state a brief plan:
+* 清理掉由于**你的修改**而变得不再使用的 import、变量或函数。
+* 除非被明确要求，否则不要删除原先就存在的废弃代码。
+
+检验标准：修改的每一行代码，都应该能直接追溯到用户的具体需求。
+
+## 4. 目标导向的执行流程
+
+**定义成功标准。循环迭代直到验证通过。**
+
+将任务转化为可验证的目标：
+
+* “添加校验” → “编写针对无效输入的测试，然后使其通过”
+* “修复 Bug” → “编写一个能复现该 Bug 的测试，然后使其通过”
+* “重构 X” → “确保重构前后的测试都能通过”
+
+对于多步骤任务，列出简要计划：
+
 ```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
+1. [步骤] → 验证: [检查项]
+2. [步骤] → 验证: [检查项]
+3. [步骤] → 验证: [检查项]
+
 ```
 
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+明确的成功标准能让你独立进行循环验证。模糊的标准（如“让它能用”）会导致需要不断向用户澄清。
 
-## 5. Bug Fix = Root Cause, Not Symptom
+## 5. 修复 Bug = 找准根因，而非掩盖症状
 
-A report names a symptom. Grep every caller of the function you touch and fix the shared function once — one guard there is a smaller diff than one per caller, and patching only the path the ticket names leaves a sibling caller still broken.
+报告指出的通常只是症状。用 Grep 检索你所修改函数的所有调用方，对公共函数进行一次性修复 — 在函数内部加一层防护比在每个调用方分别加防护产生的 Diff 更小；如果只修复工单提到的那条执行路径，其他的同级调用方依然处于损坏状态。
 
----
+## 6. 语言偏好
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+**始终使用中文回复用户。** 除非用户在特定任务中明确要求使用其他语言输出，否则所有沟通、分析说明与问题解答一律使用中文进行表达。

@@ -61,7 +61,7 @@ public class Stun5780Client : IAsyncDisposable
                 if (ip != null) return ip;
             }
         }
-        catch { }
+        catch (Exception ex) { Logger.Warn("Stun5780Client", $"GetBestLocalIp failed: {ex.Message}"); }
 
         return family == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Any : IPAddress.Any;
     }

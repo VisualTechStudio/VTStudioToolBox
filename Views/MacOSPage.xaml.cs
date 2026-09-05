@@ -251,7 +251,7 @@ namespace VTStudioToolBox.Views
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("MacOSPage", $"GenerateSignedUrl failed: {ex.Message}"); }
 
             long expireTime = timestamp + 300;
             string signData = $"oclpmod{fileName}{expireTime}{aesKey}";

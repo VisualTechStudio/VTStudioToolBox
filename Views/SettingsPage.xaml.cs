@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using System;
 using System.Threading.Tasks;
 using VTStudioToolBox.Helpers;
@@ -10,10 +11,16 @@ namespace VTStudioToolBox.Views
     public sealed partial class SettingsPage : Page
     {
         private bool _isInitializing = true;
+        private FrameworkElement[] _allViews = null!;
 
         public SettingsPage()
         {
             this.InitializeComponent();
+            _allViews = new FrameworkElement[]
+            {
+                RootView, LanguageView, ThemeView, DashboardView,
+                PrivacyView, ChangelogView, CreditsView
+            };
             UpdateLanguage();
 
             VersionTextBlock.Text = LanguageHelper.GetString("VersionLabel", Cfg.AppVersion);
@@ -34,41 +41,125 @@ namespace VTStudioToolBox.Views
             InitRefreshInterval();
 
             ThemeHelper.ThemeChanged += OnThemeChanged;
+            this.Unloaded += (_, _) => ThemeHelper.ThemeChanged -= OnThemeChanged;
             _isInitializing = false;
         }
 
         private void OnThemeChanged()
         {
-            // Rebuild contributions section with new theme brushes
             ContributionsStack.Children.Clear();
             BuildContributionsSection();
         }
+
+        // ────────────────────── Navigation ──────────────────────
+
+        private void ShowView(FrameworkElement target)
+        {
+            ShowViewAnimated(target, isForward: target != RootView);
+        }
+
+        private void ShowViewAnimated(FrameworkElement target, bool isForward)
+        {
+            foreach (var view in _allViews)
+            {
+                if (view != target)
+                    view.Visibility = Visibility.Collapsed;
+            }
+
+            target.Visibility = Visibility.Visible;
+            target.Opacity = 0;
+
+            var transform = target.RenderTransform as TranslateTransform ?? new TranslateTransform();
+            target.RenderTransform = transform;
+
+            double slideFrom = isForward ? 60 : -60;
+            transform.X = slideFrom;
+
+            // Opacity animation
+            var fadeIn = new DoubleAnimation
+            {
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(250),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            Storyboard.SetTarget(fadeIn, target);
+            Storyboard.SetTargetProperty(fadeIn, "Opacity");
+
+            // Slide animation
+            var slide = new DoubleAnimation
+            {
+                To = 0,
+                Duration = TimeSpan.FromMilliseconds(250),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            Storyboard.SetTarget(slide, transform);
+            Storyboard.SetTargetProperty(slide, "X");
+
+            var sb = new Storyboard();
+            sb.Children.Add(fadeIn);
+            sb.Children.Add(slide);
+            sb.Begin();
+        }
+
+        private void BackToRoot(object sender, RoutedEventArgs e) => ShowView(RootView);
+        private void OpenLanguage(object sender, RoutedEventArgs e) => ShowView(LanguageView);
+        private void OpenTheme(object sender, RoutedEventArgs e) => ShowView(ThemeView);
+        private void OpenDashboard(object sender, RoutedEventArgs e) => ShowView(DashboardView);
+        private void OpenPrivacy(object sender, RoutedEventArgs e) => ShowView(PrivacyView);
+        private void OpenCredits(object sender, RoutedEventArgs e) => ShowView(CreditsView);
+        private void OpenChangelog(object sender, RoutedEventArgs e) => ShowView(ChangelogView);
+
+        // ────────────────────── Language ──────────────────────
 
         private void UpdateLanguage()
         {
             PageTitle.Text = LanguageHelper.GetString("SettingsTitle");
             PageSubtitle.Text = LanguageHelper.GetString("SettingsSubtitle");
-            LanguageHeader.Text = LanguageHelper.GetString("LabelLanguage");
-            ThemeHeader.Text = LanguageHelper.GetString("LabelTheme");
+
+            // 首级设置入口
+            BackText.Text = LanguageHelper.GetString("ButtonBack");
+            LangEntryTitle.Text = LanguageHelper.GetString("LabelLanguage");
+            LangEntryDesc.Text = LanguageHelper.GetString("SettingsLangDesc");
+            ThemeEntryTitle.Text = LanguageHelper.GetString("LabelTheme");
+            ThemeEntryDesc.Text = LanguageHelper.GetString("SettingsThemeDesc");
+            DashboardEntryTitle.Text = LanguageHelper.GetString("SectionDashboard");
+            DashboardEntryDesc.Text = LanguageHelper.GetString("SettingsDashboardDesc");
+            PrivacyEntryTitle.Text = LanguageHelper.GetString("SectionPrivacy");
+            PrivacyEntryDesc.Text = LanguageHelper.GetString("SettingsPrivacyDesc");
+            CreditsEntryTitle.Text = LanguageHelper.GetString("Contributors");
+            CreditsEntryDesc.Text = LanguageHelper.GetString("SettingsCreditsDesc");
+            ChangelogEntryTitle.Text = LanguageHelper.GetString("SectionChangelog");
+            ChangelogEntryDesc.Text = LanguageHelper.GetString("SettingsChangelogDesc");
+
+            // 二级页面标题
+            LanguagePageTitle.Text = LanguageHelper.GetString("LabelLanguage");
+            ThemePageTitle.Text = LanguageHelper.GetString("LabelTheme");
+            DashboardPageTitle.Text = LanguageHelper.GetString("SectionDashboard");
+            PrivacyPageTitle.Text = LanguageHelper.GetString("SectionPrivacy");
+            CreditsPageTitle.Text = LanguageHelper.GetString("Contributors");
+            ChangelogPageTitle.Text = LanguageHelper.GetString("SectionChangelog");
+
+            // 主题选项
             ThemeSystemOption.Content = LanguageHelper.GetString("ThemeSystem");
             ThemeDarkOption.Content = LanguageHelper.GetString("ThemeDark");
             ThemeLightOption.Content = LanguageHelper.GetString("ThemeLight");
-            PrivacyHeader.Text = LanguageHelper.GetString("SectionPrivacy");
+
+            // 隐私与日志
             AnalyticsToggle.Header = LanguageHelper.GetString("AnalyticsToggle");
             AnalyticsDescription.Text = LanguageHelper.GetString("AnalyticsDescription");
             LogHeader.Text = LanguageHelper.GetString("SectionLog");
             LogLevelLabel.Text = LanguageHelper.GetString("LabelLogLevel");
             FeedbackButtonText.Text = LanguageHelper.GetString("ButtonFeedback");
-            AboutHeader.Text = LanguageHelper.GetString("SectionAbout");
+
+            // 关于
             WebsiteButtonText.Text = LanguageHelper.GetString("ButtonWebsite");
             GitHubButtonText.Text = LanguageHelper.GetString("ButtonGitHub");
             GPLButtonText.Text = LanguageHelper.GetString("ButtonGPL");
             RevokeEulaButton.Content = LanguageHelper.GetString("ButtonRevokeEULA");
+            RestartWizardButtonText.Text = LanguageHelper.GetString("ButtonRestartWizard");
             ContributorsHeader.Text = LanguageHelper.GetString("Contributors");
             ContributionsHeader.Text = LanguageHelper.GetString("SectionContributions");
             ContributionsIntro.Text = LanguageHelper.GetString("ContributionsIntro");
-            ChangelogHeader.Text = LanguageHelper.GetString("SectionChangelog");
-            DashboardHeader.Text = LanguageHelper.GetString("SectionDashboard");
             RefreshIntervalLabel.Text = LanguageHelper.GetString("LabelRefreshInterval");
 
             // Copyright and GPL
@@ -89,7 +180,7 @@ namespace VTStudioToolBox.Views
                     string path = System.IO.Path.Combine(AppContext.BaseDirectory, "EULA.html");
                     await Windows.System.Launcher.LaunchUriAsync(new Uri(path));
                 }
-                catch { }
+                catch (Exception ex) { Logger.Warn("Settings", $"Failed to open EULA: {ex.Message}"); }
             };
             eulaLink.Inlines.Add(new Microsoft.UI.Xaml.Documents.Run { Text = LanguageHelper.GetString("LabelUserAgreement") });
             CopyrightText.Inlines.Add(eulaLink);
@@ -102,6 +193,8 @@ namespace VTStudioToolBox.Views
             ContributorRole_Xcy.Text = LanguageHelper.GetString("ContributorRole_Xcy");
             ContributorRole_Yue.Text = LanguageHelper.GetString("ContributorRole_Yue");
         }
+
+        // ────────────────────── Init ──────────────────────
 
         private void InitLanguageSettings()
         {
@@ -149,11 +242,14 @@ namespace VTStudioToolBox.Views
             }
         }
 
+        // ────────────────────── Settings Handlers ──────────────────────
+
         private async void RefreshIntervalComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isInitializing) return;
             if (RefreshIntervalComboBox?.SelectedItem is ComboBoxItem item && item.Tag is string tag && int.TryParse(tag, out int ms))
             {
+                Logger.UserAction("RefreshIntervalChanged", $"{ms}ms");
                 if (ms <= 500 && !DashboardSettings.SuppressHighRefreshWarning)
                 {
                     var dialog = new ContentDialog
@@ -210,6 +306,7 @@ namespace VTStudioToolBox.Views
 
             if (ThemeComboBox.SelectedItem is ComboBoxItem item && item.Tag is string tag)
             {
+                Logger.UserAction("ThemeChanged", tag);
                 if (tag == "System")
                 {
                     ThemeHelper.ApplyFollowSystem();
@@ -229,6 +326,7 @@ namespace VTStudioToolBox.Views
             {
                 if (int.TryParse(tag, out int level))
                 {
+                    Logger.UserAction("LogLevelChanged", ((LogLevel)level).ToString());
                     Logger.MinLevel = (LogLevel)level;
                 }
             }
@@ -242,6 +340,7 @@ namespace VTStudioToolBox.Views
             {
                 if (tag != LanguageHelper.CurrentLanguage)
                 {
+                    Logger.UserAction("LanguageChanged", $"{LanguageHelper.CurrentLanguage} → {tag}");
                     LanguageHelper.ApplyLanguage(tag);
                     LanguageHelper.RestartApp();
                 }
@@ -250,6 +349,8 @@ namespace VTStudioToolBox.Views
 
         private async void FeedbackButton_Click(object sender, RoutedEventArgs e)
             => await OpenUrlAsync($"{Cfg.GithubRepo}/issues", LanguageHelper.GetString("ErrorCannotOpenFeedback"));
+
+        // ────────────────────── Contributions ──────────────────────
 
         private void BuildContributionsSection()
         {
@@ -395,6 +496,8 @@ namespace VTStudioToolBox.Views
             };
         }
 
+        // ────────────────────── URL Helpers ──────────────────────
+
         private async Task OpenUrlAsync(string url, string? errorMessage = null)
         {
             try
@@ -403,7 +506,7 @@ namespace VTStudioToolBox.Views
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"打开链接失败: {ex.Message}");
+                Logger.Warn("Settings", $"Failed to open URL: {ex.Message}");
                 var dialog = new ContentDialog
                 {
                     Title = LanguageHelper.GetString("DialogTitle_Failure"),
@@ -423,6 +526,25 @@ namespace VTStudioToolBox.Views
 
         private async void GPLV3Button_Click(object sender, RoutedEventArgs e)
             => await OpenUrlAsync(Cfg.GPLV3, LanguageHelper.GetString("ErrorCannotOpenGPL"));
+
+        private void RestartWizardButton_Click(object sender, RoutedEventArgs e)
+        {
+            string setupPath = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "VTStudioToolBox", "setup_done.txt");
+            try
+            {
+                if (System.IO.File.Exists(setupPath))
+                    System.IO.File.Delete(setupPath);
+                Logger.Info("Settings", "Wizard completion reset, restarting app");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Settings", "Failed to reset wizard", ex);
+            }
+
+            Application.Current.Exit();
+        }
 
         private async void RevokeEulaButton_Click(object sender, RoutedEventArgs e)
         {
@@ -459,7 +581,7 @@ namespace VTStudioToolBox.Views
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"撤销 EULA 失败: {ex.Message}");
+                Logger.Warn("Settings", $"Revoke EULA failed: {ex.Message}");
                 var dialog = new ContentDialog
                 {
                     Title = LanguageHelper.GetString("DialogTitle_Failure"),

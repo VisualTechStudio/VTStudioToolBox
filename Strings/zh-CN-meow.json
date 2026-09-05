@@ -1,4 +1,4 @@
-﻿{
+{
     "_name": "喵体中文",
     "NavDashboard": "仪表盘喵",
     "NavUtilities": "实用工具�?,
@@ -110,6 +110,7 @@
     "ButtonGitHub": "前往Github给本项目一个Star喵",
     "ButtonGPL": "了解GNU GPLv3开源协议喵",
     "ButtonRevokeEULA": "撤销同意用户协议喵",
+    "ButtonRestartWizard": "重新开始使用向导喵",
     "Contributors": "参与开发的贡献者喵",
     "SectionContributions": "贡献喵",
     "SectionDashboard": "仪表盘喵",
@@ -200,5 +201,25 @@
     "AuthNotLoggedIn": "未登录喵",
     "AuthSignIn": "登录�?,
     "AuthSignInWith": "登录方式�?,
-    "AuthSignOut": "退出登录喵"
+    "AuthSignOut": "退出登录喵",
+
+    "WizardNext": "下一步喵",
+    "WizardBack": "上一步喵",
+    "WizardWelcomeTitle": "嗨，欢迎使用 VTStudio ToolBox 喵",
+    "WizardWelcomeSubtitle": "在首次使用之前，我们将协助您完成首次设置喵",
+    "WizardThemeTitle": "选择主题喵",
+    "WizardThemeSubtitle": "选择你喜欢的界面主题喵",
+    "WizardThemeFollowSystem": "跟随系统喵",
+    "WizardThemeLight": "浅色模式喵",
+    "WizardThemeDark": "深色模式喵",
+    "WizardDriverTitle": "安装驱动喵",
+    "WizardDriverSubtitle": "PawnIO 驱动用来读取硬件传感器数据喵",
+    "WizardPawnIODesc": "PawnIO 内核驱动可以提供更精确的硬件信息读取能力喵，包括 CPU/GPU 温度、电压、风扇转速等传感器数据喵。\n\n如果你跳过此步骤喵，部分硬件信息可能无法正常显示喵。",
+    "WizardPawnIOInstall": "安装 PawnIO 驱动喵",
+    "WizardPawnIODescInstalled": "PawnIO 驱动已安装喵，硬件传感器数据读取能力已就绪喵。",
+    "WizardPawnIOWebsite": "访问 PawnIO 官网喵",
+    "WizardPawnIOFinished": "完成喵",
+    "WizardPawnIOSkip": "跳过喵，稍后再说",
+    "WizardPawnIONotFound": "未找到安装程序喵",
+    "WizardPawnIONotFoundDesc": "PawnIO 安装程序未找到喵，请手动下载并安装喵。"
 }

@@ -57,7 +57,7 @@ internal static class DnsResolver
                 return ips[0];
             }
         }
-        catch { }
+        catch (Exception ex) { Logger.Warn("DnsResolver", $"System DNS failed: {ex.Message}"); }
 
         return null;
     }

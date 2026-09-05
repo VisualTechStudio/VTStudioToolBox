@@ -18,7 +18,7 @@ internal static class FirewallHelper
             Logger.Dev("Firewall", $"Checking rule for: {exePath}");
 
             // Check if rule already exists
-            var checkProcess = Process.Start(new ProcessStartInfo
+            using var checkProcess = Process.Start(new ProcessStartInfo
             {
                 FileName = "netsh",
                 Arguments = $"advfirewall firewall show rule name=\"{RuleName}\"",
@@ -40,7 +40,7 @@ internal static class FirewallHelper
             }
 
             // Add inbound rule
-            var addInbound = Process.Start(new ProcessStartInfo
+            using var addInbound = Process.Start(new ProcessStartInfo
             {
                 FileName = "netsh",
                 Arguments = $"advfirewall firewall add rule name=\"{RuleName}\" dir=in action=allow program=\"{exePath}\" enable=yes profile=any",
@@ -51,7 +51,7 @@ internal static class FirewallHelper
             addInbound?.WaitForExit();
 
             // Add outbound rule
-            var addOutbound = Process.Start(new ProcessStartInfo
+            using var addOutbound = Process.Start(new ProcessStartInfo
             {
                 FileName = "netsh",
                 Arguments = $"advfirewall firewall add rule name=\"{RuleName}\" dir=out action=allow program=\"{exePath}\" enable=yes profile=any",
@@ -75,13 +75,14 @@ internal static class FirewallHelper
     {
         try
         {
-            Process.Start(new ProcessStartInfo
+            using var process = Process.Start(new ProcessStartInfo
             {
                 FileName = "netsh",
                 Arguments = $"advfirewall firewall delete rule name=\"{RuleName}\"",
                 UseShellExecute = false,
                 CreateNoWindow = true
-            })?.WaitForExit();
+            });
+            process?.WaitForExit();
 
             Logger.Info("Firewall", "Removed firewall rule");
         }

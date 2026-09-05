@@ -107,7 +107,7 @@ public sealed class AuthManager : IAuthService
 
         using var tokenResp = await Http.SendAsync(tokenReq, ct);
         tokenResp.EnsureSuccessStatusCode();
-        var tokenJson = JsonDocument.Parse(await tokenResp.Content.ReadAsStringAsync(ct));
+        using var tokenJson = JsonDocument.Parse(await tokenResp.Content.ReadAsStringAsync(ct));
 
         if (tokenJson.RootElement.TryGetProperty("error", out var errorProp))
         {
@@ -127,7 +127,7 @@ public sealed class AuthManager : IAuthService
 
         using var userResp = await Http.SendAsync(userReq, ct);
         userResp.EnsureSuccessStatusCode();
-        var userDoc = JsonDocument.Parse(await userResp.Content.ReadAsStringAsync(ct));
+        using var userDoc = JsonDocument.Parse(await userResp.Content.ReadAsStringAsync(ct));
         var root = userDoc.RootElement;
 
         string displayName = root.GetProperty("login").GetString() ?? "";
@@ -189,7 +189,7 @@ public sealed class AuthManager : IAuthService
             tokenResp.EnsureSuccessStatusCode();
         }
 
-        var tokenDoc = JsonDocument.Parse(await tokenResp.Content.ReadAsStringAsync(ct));
+        using var tokenDoc = JsonDocument.Parse(await tokenResp.Content.ReadAsStringAsync(ct));
         string accessToken = tokenDoc.RootElement.GetProperty("access_token").GetString()
                              ?? throw new InvalidOperationException("Microsoft token exchange failed.");
         Logger.Info("Auth", "Microsoft: access token obtained");
@@ -200,7 +200,7 @@ public sealed class AuthManager : IAuthService
 
         using var userResp = await Http.SendAsync(userReq, ct);
         userResp.EnsureSuccessStatusCode();
-        var userDoc = JsonDocument.Parse(await userResp.Content.ReadAsStringAsync(ct));
+        using var userDoc = JsonDocument.Parse(await userResp.Content.ReadAsStringAsync(ct));
         var root = userDoc.RootElement;
 
         // Fetch avatar photo (separate endpoint)
@@ -293,7 +293,7 @@ public sealed class AuthManager : IAuthService
             tokenResp.EnsureSuccessStatusCode();
         }
 
-        var tokenDoc = JsonDocument.Parse(await tokenResp.Content.ReadAsStringAsync(ct));
+        using var tokenDoc = JsonDocument.Parse(await tokenResp.Content.ReadAsStringAsync(ct));
         string accessToken = tokenDoc.RootElement.GetProperty("access_token").GetString()
                              ?? throw new InvalidOperationException("Google token exchange failed.");
         Logger.Info("Auth", "Google: access token obtained");
@@ -304,7 +304,7 @@ public sealed class AuthManager : IAuthService
 
         using var userResp = await Http.SendAsync(userReq, ct);
         userResp.EnsureSuccessStatusCode();
-        var userDoc = JsonDocument.Parse(await userResp.Content.ReadAsStringAsync(ct));
+        using var userDoc = JsonDocument.Parse(await userResp.Content.ReadAsStringAsync(ct));
         var root = userDoc.RootElement;
 
         string displayName = root.TryGetProperty("name", out var name) ? name.GetString() ?? "" : "";
@@ -328,7 +328,9 @@ public sealed class AuthManager : IAuthService
         string redirectUri = await StartListenerAndGetRedirectUriAsync(ct);
         Logger.Info("Auth", $"Steam: listening on {redirectUri}");
 
-        string realm = $"http://127.0.0.1:{CallbackPort}";
+        // Extract port from redirectUri for realm
+        var uri = new Uri(redirectUri);
+        string realm = $"http://127.0.0.1:{uri.Port}";
         string authUrl =
             "https://steamcommunity.com/openid/login" +
             $"?openid.ns={Uri.EscapeDataString("http://specs.openid.net/auth/2.0")}" +
@@ -350,7 +352,7 @@ public sealed class AuthManager : IAuthService
 
         using var resp = await Http.GetAsync(apiUrl, ct);
         resp.EnsureSuccessStatusCode();
-        var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync(ct));
+        using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync(ct));
         var players = doc.RootElement.GetProperty("response").GetProperty("players");
         if (players.GetArrayLength() == 0)
             throw new InvalidOperationException("Steam player not found.");
@@ -402,26 +404,39 @@ public sealed class AuthManager : IAuthService
 
     // ────────────────────── Local Loopback Listener ──────────────────────
 
-    private const int CallbackPort = 49152;
+    private static HttpListener? _activeListener;
+    private static readonly object _listenerLock = new();
 
     private static async Task<string> StartListenerAndGetRedirectUriAsync(CancellationToken ct)
     {
+        // Find an available port
+        int port;
+        var tcpListener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+        tcpListener.Start();
+        port = ((System.Net.IPEndPoint)tcpListener.LocalEndpoint).Port;
+        tcpListener.Stop();
+
         var listener = new HttpListener();
-        string prefix = $"http://127.0.0.1:{CallbackPort}/callback/";
+        string prefix = $"http://127.0.0.1:{port}/callback/";
         listener.Prefixes.Add(prefix);
         listener.Start();
 
-        // Store listener reference so WaitForCallbackAsync can use it
-        _activeListener = listener;
+        lock (_listenerLock)
+        {
+            _activeListener?.Stop();
+            _activeListener = listener;
+        }
         return prefix;
     }
-
-    private static HttpListener? _activeListener;
 
     private static async Task<Dictionary<string, string>> WaitForCallbackAsync(
         string redirectUri, CancellationToken ct)
     {
-        var listener = _activeListener ?? throw new InvalidOperationException("No active listener.");
+        HttpListener listener;
+        lock (_listenerLock)
+        {
+            listener = _activeListener ?? throw new InvalidOperationException("No active listener.");
+        }
         try
         {
             // Build the HTML success page bytes once
@@ -481,8 +496,8 @@ public sealed class AuthManager : IAuthService
         }
         finally
         {
-            try { listener.Stop(); listener.Close(); } catch { }
-            _activeListener = null;
+            try { listener.Stop(); listener.Close(); } catch (Exception ex) { Logger.Warn("Auth", $"Failed to stop listener: {ex.Message}"); }
+            lock (_listenerLock) { _activeListener = null; }
         }
     }
 
@@ -579,6 +594,6 @@ public sealed class AuthManager : IAuthService
     private static void DeleteCachedUser()
     {
         try { if (File.Exists(AuthCachePath)) File.Delete(AuthCachePath); }
-        catch { }
+        catch (Exception ex) { Logger.Warn("Auth", $"Failed to delete cached auth: {ex.Message}"); }
     }
 }

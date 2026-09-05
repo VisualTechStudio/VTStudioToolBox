@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using VTStudioToolBox.Helpers;
 
 namespace VTStudioToolBox.Services
 {
@@ -39,19 +40,23 @@ namespace VTStudioToolBox.Services
         private static IntPtr _handle = new IntPtr(-1);
         private static bool _connected;
         private static bool _tried;
+        private static readonly object _lock = new();
 
         public static bool IsAvailable()
         {
-            if (_tried) return _connected;
-            _tried = true;
-            try
+            lock (_lock)
             {
-                _handle = CreateFile(DevicePath, GENERIC_READ | GENERIC_WRITE,
-                    FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
-                _connected = _handle != new IntPtr(-1);
+                if (_tried) return _connected;
+                _tried = true;
+                try
+                {
+                    _handle = CreateFile(DevicePath, GENERIC_READ | GENERIC_WRITE,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
+                    _connected = _handle != new IntPtr(-1);
+                }
+                catch (Exception ex) { _connected = false; Logger.Warn("AsusFanReader", $"IsAvailable failed: {ex.Message}"); }
+                return _connected;
             }
-            catch { _connected = false; }
-            return _connected;
         }
 
         public static List<FanSensorData> GetFanData()
@@ -84,7 +89,7 @@ namespace VTStudioToolBox.Services
                 if (fan > 120 || (fan == 0 && raw < 0)) return -1;
                 return fan * 100;
             }
-            catch { return -1; }
+            catch (Exception ex) { Logger.Warn("AsusFanReader", $"ReadFan failed: {ex.Message}"); return -1; }
         }
 
         private static byte[]? CallMethod(uint methodId, byte[] args)
@@ -103,7 +108,7 @@ namespace VTStudioToolBox.Services
                     outBuffer, (uint)outBuffer.Length, ref bytesReturned, IntPtr.Zero);
                 return ok ? outBuffer : null;
             }
-            catch { return null; }
+            catch (Exception ex) { Logger.Warn("AsusFanReader", $"CallMethod failed: {ex.Message}"); return null; }
         }
 
         public static void Dispose()

@@ -123,7 +123,6 @@ CPU检测 | CPU-Z | 处理器详细信息、缓存、主板信息
 VTStudioToolBox/
 ├── Assets/                     # 应用资源
 │   ├── Fonts/                   # 自定义字体
-│   │   └── ROGFontsv1.6-Regular.ttf  # ASUS ROG专属字体
 │   ├── LockScreenLogo.scale-200.png
 │   ├── SplashScreen.scale-200.png
 │   ├── Square150x150Logo.scale-200.png
@@ -356,7 +355,7 @@ private readonly Dictionary<string, Type> _pageRoutes = new()
 职责：系统信息采集、缓存管理、实时硬件监控、UI展示
 
 布局结构：
-- 左上：设备型号卡片（ASUS设备使用ROG专属字体）
+- 左上：设备型号卡片
 - 左侧：硬件信息卡片（制造商、主板、型号、CPU、内存、GPU、硬盘、网卡、声卡、显示器）
 - 右上：系统信息卡片（计算机名、系统版本、安装时间、运行时间）
 - 右下：系统使用率卡片（CPU频率/使用率/温度/电压/功耗、GPU核心/显存/使用率/温度/电压/功耗、内存使用率、风扇转速）

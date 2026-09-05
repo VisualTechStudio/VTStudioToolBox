@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using LibreHardwareMonitor.Hardware;
+using VTStudioToolBox.Helpers;
 
 #nullable enable
 
@@ -294,7 +295,7 @@ namespace VTStudioToolBox.Services
                     return (raw - 2732.0) / 10.0;
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("HardwareMonitor", $"ACPI temp failed: {ex.Message}"); }
             return 0;
         }
 
@@ -335,7 +336,7 @@ namespace VTStudioToolBox.Services
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("HardwareMonitor", $"WMI fan query failed: {ex.Message}"); }
             return fans;
         }
 

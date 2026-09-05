@@ -104,7 +104,7 @@ namespace VTStudioToolBox.Views
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"Window event subscribe: {ex.Message}"); }
         }
 
         private void UnsubscribeWindowMove()
@@ -123,7 +123,7 @@ namespace VTStudioToolBox.Views
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"Window event unsubscribe: {ex.Message}"); }
         }
 
         private void OnAppWindowChanged(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowChangedEventArgs args)
@@ -357,7 +357,7 @@ namespace VTStudioToolBox.Views
                     return fullName;
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"WMI query user FullName: {ex.Message}"); }
             return Environment.UserName;
         }
 
@@ -550,7 +550,7 @@ namespace VTStudioToolBox.Views
                                 ubr = ubrKey.GetValue("UBR")?.ToString() ?? "";
                             }
                         }
-                        catch { }
+                        catch (Exception ex) { Logger.Warn("Dashboard", $"Registry read UBR: {ex.Message}"); }
                         string fullVersion = string.IsNullOrEmpty(ubr) ? version : $"{buildNumber}.{ubr}";
 
                         string cleanCaption = caption.Replace("Microsoft", "").Trim();
@@ -580,13 +580,13 @@ namespace VTStudioToolBox.Views
                                 int s = int.Parse(datePart.Substring(12, 2));
                                 _bootTime = new DateTime(y, m, d, h, mi, s);
                             }
-                            catch { }
+                            catch (Exception ex) { Logger.Warn("Dashboard", $"Boot time parsing: {ex.Message}"); }
                         }
                         break;
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"WMI query OS info: {ex.Message}"); }
         }
 
         private void GetComputerSystemInfo(SystemInfo info)
@@ -603,7 +603,7 @@ namespace VTStudioToolBox.Views
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"WMI query ComputerSystem: {ex.Message}"); }
         }
 
         private void GetMotherboardInfo(SystemInfo info)
@@ -621,7 +621,7 @@ namespace VTStudioToolBox.Views
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"WMI query BaseBoard: {ex.Message}"); }
         }
 
         private void GetCPUInfo(SystemInfo info)
@@ -654,7 +654,7 @@ namespace VTStudioToolBox.Views
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"WMI query Processor: {ex.Message}"); }
         }
 
         private void GetRAMInfo(SystemInfo info)
@@ -747,7 +747,7 @@ namespace VTStudioToolBox.Views
 
                 info.RAM = ramText;
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"WMI query PhysicalMemory: {ex.Message}"); }
         }
 
         private bool IsValidVRAMValue(long vramBytes)
@@ -787,7 +787,7 @@ namespace VTStudioToolBox.Views
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"DirectX VRAM query: {ex.Message}"); }
 
             return vramDict;
         }
@@ -826,7 +826,7 @@ namespace VTStudioToolBox.Views
                         }
                     }
                 }
-                catch { }
+                catch (Exception ex) { Logger.Warn("Dashboard", $"WMI query GPU driver: {ex.Message}"); }
 
                 var directXVRAMDict = GetDirectXVRAM();
 
@@ -913,7 +913,7 @@ namespace VTStudioToolBox.Views
 
                 info.GPU = FormatVerticalList(gpuList);
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"WMI query VideoController: {ex.Message}"); }
         }
 
         private void GetHDDInfo(SystemInfo info)
@@ -943,7 +943,7 @@ namespace VTStudioToolBox.Views
                 }
                 info.HDD = FormatVerticalList(drives);
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"WMI query DiskDrive: {ex.Message}"); }
         }
 
         private void GetNetworkInfo(SystemInfo info)
@@ -980,7 +980,7 @@ namespace VTStudioToolBox.Views
                 }
                 info.Network = FormatVerticalList(adapters);
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"WMI query NetworkAdapter: {ex.Message}"); }
         }
 
         private void GetAudioInfo(SystemInfo info)
@@ -1002,7 +1002,7 @@ namespace VTStudioToolBox.Views
                 }
                 info.Audio = FormatVerticalList(audioDevices);
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"WMI query SoundDevice: {ex.Message}"); }
         }
 
         private string GetMonitorInfo()
@@ -1040,7 +1040,7 @@ namespace VTStudioToolBox.Views
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"WMI query Monitor: {ex.Message}"); }
 
             return FormatVerticalList(displays);
         }
@@ -1072,7 +1072,7 @@ namespace VTStudioToolBox.Views
                     return LanguageHelper.GetString("DateFormat", dt);
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"Format WMI date: {ex.Message}"); }
             return wmiDateTime;
         }
 
@@ -1102,7 +1102,7 @@ namespace VTStudioToolBox.Views
                     return days > 0 ? LanguageHelper.GetString("UptimeDaysHours", days, hours, minutes, seconds) : LanguageHelper.GetString("UptimeHoursMinutes", hours, minutes, seconds);
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Dashboard", $"Format uptime: {ex.Message}"); }
             return wmiDateTime;
         }
 

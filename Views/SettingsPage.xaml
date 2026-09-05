@@ -5,271 +5,486 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     Background="Transparent">
 
-    <ScrollViewer>
-        <Grid Margin="24">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Margin="0,0,0,24">
-                <TextBlock x:Name="PageTitle" Style="{ThemeResource PageTitleStyle}"/>
-                <TextBlock x:Name="PageSubtitle" Style="{ThemeResource PageSubtitleStyle}"/>
-            </StackPanel>
+        <!-- 页面标题 -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock x:Name="PageTitle" Style="{ThemeResource PageTitleStyle}"/>
+            <TextBlock x:Name="PageSubtitle" Style="{ThemeResource PageSubtitleStyle}"/>
+        </StackPanel>
 
-            <Grid Grid.Row="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+        <!-- 主内容区 -->
+        <Grid Grid.Row="1">
+            <!-- ======== 首级 ======== -->
+            <ScrollViewer x:Name="RootView">
+                <StackPanel>
+                    <!-- 关于 (最上方) -->
+                    <Border Style="{ThemeResource CardBorderStyle}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <StackPanel Spacing="8" Margin="0,0,0,16">
+                                <TextBlock Text="VTStudio ToolBox" FontSize="14"
+                                           Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                <TextBlock x:Name="VersionTextBlock" FontSize="12"
+                                           Foreground="{ThemeResource SecondaryTextBrush}"/>
+                                <TextBlock x:Name="CopyrightText"
+                                           FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}"/>
+                                <TextBlock x:Name="GPLStatement"
+                                           FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
 
-                <!-- 语言设置 -->
-                <Border Grid.Row="0" Style="{ThemeResource CardBorderStyle}">
-                    <StackPanel>
-                        <TextBlock x:Name="LanguageHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
-                        <ComboBox x:Name="LanguageComboBox"
-                                  MinWidth="140"
-                                  VerticalAlignment="Center"
-                                  SelectionChanged="LanguageComboBox_SelectionChanged"/>
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Button x:Name="WebsiteButton" Click="WebsiteButton_Click"
+                                        FontSize="12" BorderThickness="1" Padding="12,6">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE71B;" FontSize="12"/>
+                                        <TextBlock x:Name="WebsiteButtonText"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="GitHubButton" Click="GitHubButton_Click"
+                                        FontSize="12" BorderThickness="1" Padding="12,6">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE734;" FontSize="12"/>
+                                        <TextBlock x:Name="GitHubButtonText"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="GPLV3Button" Click="GPLV3Button_Click"
+                                        FontSize="12" BorderThickness="1" Padding="12,6">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE70B;" FontSize="12"/>
+                                        <TextBlock x:Name="GPLButtonText"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="RestartWizardButton" Click="RestartWizardButton_Click"
+                                        FontSize="12" BorderThickness="1" Padding="12,6">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE72C;" FontSize="12"/>
+                                        <TextBlock x:Name="RestartWizardButtonText"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="RevokeEulaButton"
+                                        Click="RevokeEulaButton_Click" FontSize="12"
+                                        Foreground="{ThemeResource DangerRedBrush}"
+                                        Background="Transparent"
+                                        BorderBrush="{ThemeResource DangerRedBrush}"
+                                        BorderThickness="1" Padding="12,6"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 设置入口 -->
+                    <Border Style="{ThemeResource CardBorderStyle}">
+                        <StackPanel>
+                            <!-- 语言 -->
+                            <Border Tapped="OpenLanguage" IsTapEnabled="True"
+                                    Padding="12,10" CornerRadius="8" Background="Transparent">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                        <FontIcon Glyph="&#xE774;" FontSize="16" VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource SecondaryTextBrush}"/>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Name="LangEntryTitle" FontSize="14" FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                            <TextBlock x:Name="LangEntryDesc" FontSize="12"
+                                                       Foreground="{ThemeResource TertiaryTextBrush}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="14"
+                                              VerticalAlignment="Center"
+                                              Foreground="{ThemeResource TertiaryTextBrush}"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 主题 -->
+                            <Border Tapped="OpenTheme" IsTapEnabled="True"
+                                    Padding="12,10" CornerRadius="8" Background="Transparent">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                        <FontIcon Glyph="&#xE771;" FontSize="16" VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource SecondaryTextBrush}"/>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Name="ThemeEntryTitle" FontSize="14" FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                            <TextBlock x:Name="ThemeEntryDesc" FontSize="12"
+                                                       Foreground="{ThemeResource TertiaryTextBrush}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="14"
+                                              VerticalAlignment="Center"
+                                              Foreground="{ThemeResource TertiaryTextBrush}"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 仪表盘 -->
+                            <Border Tapped="OpenDashboard" IsTapEnabled="True"
+                                    Padding="12,10" CornerRadius="8" Background="Transparent">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                        <FontIcon Glyph="&#xE9F5;" FontSize="16" VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource SecondaryTextBrush}"/>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Name="DashboardEntryTitle" FontSize="14" FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                            <TextBlock x:Name="DashboardEntryDesc" FontSize="12"
+                                                       Foreground="{ThemeResource TertiaryTextBrush}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="14"
+                                              VerticalAlignment="Center"
+                                              Foreground="{ThemeResource TertiaryTextBrush}"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 隐私与日志 -->
+                            <Border Tapped="OpenPrivacy" IsTapEnabled="True"
+                                    Padding="12,10" CornerRadius="8" Background="Transparent">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                        <FontIcon Glyph="&#xE72E;" FontSize="16" VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource SecondaryTextBrush}"/>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Name="PrivacyEntryTitle" FontSize="14" FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                            <TextBlock x:Name="PrivacyEntryDesc" FontSize="12"
+                                                       Foreground="{ThemeResource TertiaryTextBrush}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="14"
+                                              VerticalAlignment="Center"
+                                              Foreground="{ThemeResource TertiaryTextBrush}"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 更新日志 -->
+                            <Border Tapped="OpenChangelog" IsTapEnabled="True"
+                                    Padding="12,10" CornerRadius="8" Background="Transparent">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                        <FontIcon Glyph="&#xE8FD;" FontSize="16" VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource SecondaryTextBrush}"/>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Name="ChangelogEntryTitle" FontSize="14" FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                            <TextBlock x:Name="ChangelogEntryDesc" FontSize="12"
+                                                       Foreground="{ThemeResource TertiaryTextBrush}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="14"
+                                              VerticalAlignment="Center"
+                                              Foreground="{ThemeResource TertiaryTextBrush}"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 贡献者与致谢 -->
+                            <Border Tapped="OpenCredits" IsTapEnabled="True"
+                                    Padding="12,10" CornerRadius="8" Background="Transparent">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                        <FontIcon Glyph="&#xE716;" FontSize="16" VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource SecondaryTextBrush}"/>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Name="CreditsEntryTitle" FontSize="14" FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                            <TextBlock x:Name="CreditsEntryDesc" FontSize="12"
+                                                       Foreground="{ThemeResource TertiaryTextBrush}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="14"
+                                              VerticalAlignment="Center"
+                                              Foreground="{ThemeResource TertiaryTextBrush}"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ======== 二级：语言 ======== -->
+            <ScrollViewer x:Name="LanguageView" Visibility="Collapsed">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,20">
+                        <Button Click="BackToRoot" Padding="8,4">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE76B;" FontSize="14"/>
+                                <TextBlock x:Name="BackText"/>
+                            </StackPanel>
+                        </Button>
+                        <TextBlock x:Name="LanguagePageTitle" FontSize="20" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource PrimaryTextBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
-                </Border>
+                    <Border Style="{ThemeResource CardBorderStyle}">
+                        <StackPanel>
+                            <ComboBox x:Name="LanguageComboBox" MinWidth="200" VerticalAlignment="Center"
+                                      SelectionChanged="LanguageComboBox_SelectionChanged"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
 
-                <!-- 主题设置 -->
-                <Border Grid.Row="1" Style="{ThemeResource CardBorderStyle}">
-                    <StackPanel>
-                        <TextBlock x:Name="ThemeHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
-                        <ComboBox x:Name="ThemeComboBox"
-                                  MinWidth="140"
-                                  VerticalAlignment="Center"
-                                  SelectionChanged="ThemeComboBox_SelectionChanged">
-                            <ComboBoxItem x:Name="ThemeSystemOption" Tag="System"/>
-                            <ComboBoxItem x:Name="ThemeDarkOption" Tag="Dark"/>
-                            <ComboBoxItem x:Name="ThemeLightOption" Tag="Light"/>
-                        </ComboBox>
+            <!-- ======== 二级：主题 ======== -->
+            <ScrollViewer x:Name="ThemeView" Visibility="Collapsed">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,20">
+                        <Button Click="BackToRoot" Padding="8,4">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE76B;" FontSize="14"/>
+                                <TextBlock Text="{Binding ElementName=BackText, Path=Text}"/>
+                            </StackPanel>
+                        </Button>
+                        <TextBlock x:Name="ThemePageTitle" FontSize="20" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource PrimaryTextBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
-                </Border>
-
-                <!-- 隐私设置 -->
-                <Border Grid.Row="2" Style="{ThemeResource CardBorderStyle}">
-                    <StackPanel>
-                        <TextBlock x:Name="PrivacyHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
-                        <ToggleSwitch x:Name="AnalyticsToggle"
-                                      IsOn="False"
-                                      IsEnabled="False"
-                                      OffContent=""
-                                      OnContent=""/>
-                        <TextBlock x:Name="AnalyticsDescription"
-                                   FontSize="12"
-                                   Foreground="{ThemeResource SecondaryTextBrush}"
-                                   TextWrapping="Wrap"
-                                   Margin="0,8,0,0"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- 日志设置 -->
-                <Border Grid.Row="3" Style="{ThemeResource CardBorderStyle}">
-                    <StackPanel>
-                        <TextBlock x:Name="LogHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
-
-                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                            <TextBlock x:Name="LogLevelLabel" FontSize="12"
-                                       Foreground="{ThemeResource SecondaryTextBrush}"
-                                       VerticalAlignment="Center"/>
-                            <ComboBox x:Name="LogLevelComboBox"
-                                      Width="120"
-                                      VerticalAlignment="Center"
-                                      SelectionChanged="LogLevelComboBox_SelectionChanged">
-                                <ComboBoxItem Content="Dev" Tag="0"/>
-                                <ComboBoxItem Content="Info" Tag="1" IsSelected="True"/>
-                                <ComboBoxItem Content="Warn" Tag="2"/>
-                                <ComboBoxItem Content="Error" Tag="3"/>
+                    <Border Style="{ThemeResource CardBorderStyle}">
+                        <StackPanel>
+                            <ComboBox x:Name="ThemeComboBox" MinWidth="200" VerticalAlignment="Center"
+                                      SelectionChanged="ThemeComboBox_SelectionChanged">
+                                <ComboBoxItem x:Name="ThemeSystemOption" Tag="System"/>
+                                <ComboBoxItem x:Name="ThemeDarkOption" Tag="Dark"/>
+                                <ComboBoxItem x:Name="ThemeLightOption" Tag="Light"/>
                             </ComboBox>
-                            <Button x:Name="FeedbackButton"
-                                    Click="FeedbackButton_Click"
-                                    FontSize="12" BorderThickness="1" Padding="12,6">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE946;" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ======== 二级：仪表盘 ======== -->
+            <ScrollViewer x:Name="DashboardView" Visibility="Collapsed">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,20">
+                        <Button Click="BackToRoot" Padding="8,4">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE76B;" FontSize="14"/>
+                                <TextBlock Text="{Binding ElementName=BackText, Path=Text}"/>
+                            </StackPanel>
+                        </Button>
+                        <TextBlock x:Name="DashboardPageTitle" FontSize="20" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Border Style="{ThemeResource CardBorderStyle}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock x:Name="RefreshIntervalLabel" FontSize="14"
+                                           Foreground="{ThemeResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="RefreshIntervalComboBox" Width="140" VerticalAlignment="Center"
+                                          SelectionChanged="RefreshIntervalComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="100ms" Tag="100"/>
+                                    <ComboBoxItem Content="200ms" Tag="200"/>
+                                    <ComboBoxItem Content="500ms" Tag="500"/>
+                                    <ComboBoxItem Content="1000ms" Tag="1000"/>
+                                    <ComboBoxItem Content="2000ms" Tag="2000" IsSelected="True"/>
+                                    <ComboBoxItem Content="5000ms" Tag="5000"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ======== 二级：隐私与日志 ======== -->
+            <ScrollViewer x:Name="PrivacyView" Visibility="Collapsed">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,20">
+                        <Button Click="BackToRoot" Padding="8,4">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE76B;" FontSize="14"/>
+                                <TextBlock Text="{Binding ElementName=BackText, Path=Text}"/>
+                            </StackPanel>
+                        </Button>
+                        <TextBlock x:Name="PrivacyPageTitle" FontSize="20" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Border Style="{ThemeResource CardBorderStyle}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <ToggleSwitch x:Name="AnalyticsToggle"
+                                          IsOn="False" IsEnabled="False" OffContent="" OnContent=""/>
+                            <TextBlock x:Name="AnalyticsDescription"
+                                       FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}"
+                                       TextWrapping="Wrap" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{ThemeResource CardBorderStyle}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock x:Name="LogHeader" FontSize="16" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock x:Name="LogLevelLabel" FontSize="14"
+                                           Foreground="{ThemeResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="LogLevelComboBox" Width="140" VerticalAlignment="Center"
+                                          SelectionChanged="LogLevelComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="Dev" Tag="0"/>
+                                    <ComboBoxItem Content="Info" Tag="1" IsSelected="True"/>
+                                    <ComboBoxItem Content="Warn" Tag="2"/>
+                                    <ComboBoxItem Content="Error" Tag="3"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{ThemeResource CardBorderStyle}">
+                        <StackPanel>
+                            <Button x:Name="FeedbackButton" Click="FeedbackButton_Click"
+                                    FontSize="13" BorderThickness="1" Padding="16,8" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE946;" FontSize="14"/>
                                     <TextBlock x:Name="FeedbackButtonText"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ======== 二级：更新日志 ======== -->
+            <ScrollViewer x:Name="ChangelogView" Visibility="Collapsed">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,20">
+                        <Button Click="BackToRoot" Padding="8,4">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE76B;" FontSize="14"/>
+                                <TextBlock Text="{Binding ElementName=BackText, Path=Text}"/>
+                            </StackPanel>
+                        </Button>
+                        <TextBlock x:Name="ChangelogPageTitle" FontSize="20" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource PrimaryTextBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
-                </Border>
-
-                <!-- 仪表盘设置 -->
-                <Border Grid.Row="4" Style="{ThemeResource CardBorderStyle}">
-                    <StackPanel>
-                        <TextBlock x:Name="DashboardHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
-                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                            <TextBlock x:Name="RefreshIntervalLabel" FontSize="12"
-                                       Foreground="{ThemeResource SecondaryTextBrush}"
-                                       VerticalAlignment="Center"/>
-                            <ComboBox x:Name="RefreshIntervalComboBox"
-                                      Width="120"
-                                      VerticalAlignment="Center"
-                                      SelectionChanged="RefreshIntervalComboBox_SelectionChanged">
-                                <ComboBoxItem Content="100ms" Tag="100"/>
-                                <ComboBoxItem Content="200ms" Tag="200"/>
-                                <ComboBoxItem Content="500ms" Tag="500"/>
-                                <ComboBoxItem Content="1000ms" Tag="1000"/>
-                                <ComboBoxItem Content="2000ms" Tag="2000" IsSelected="True"/>
-                                <ComboBoxItem Content="5000ms" Tag="5000"/>
-                            </ComboBox>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Row="5" Style="{ThemeResource CardBorderStyle}">
-                    <StackPanel>
-                        <TextBlock x:Name="AboutHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
-
-                        <StackPanel Spacing="8" Margin="0,0,0,16">
-                            <TextBlock Text="VTStudio ToolBox" FontSize="14"
-                                       Foreground="{ThemeResource PrimaryTextBrush}"/>
-                            <TextBlock x:Name="VersionTextBlock" FontSize="12"
-                                       Foreground="{ThemeResource SecondaryTextBrush}"/>
-                            <TextBlock x:Name="CopyrightText"
-                                       FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}"/>
-                            <TextBlock x:Name="GPLStatement"
-                                       FontSize="12" Foreground="{ThemeResource SecondaryTextBrush}" TextWrapping="Wrap"/>
-                        </StackPanel>
-
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <Button x:Name="WebsiteButton" Click="WebsiteButton_Click"
-                                    FontSize="12" BorderThickness="1" Padding="12,6">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE71B;" FontSize="12"/>
-                                    <TextBlock x:Name="WebsiteButtonText"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="GitHubButton" Click="GitHubButton_Click"
-                                    FontSize="12" BorderThickness="1" Padding="12,6">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE734;" FontSize="12"/>
-                                    <TextBlock x:Name="GitHubButtonText"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="GPLV3Button" Click="GPLV3Button_Click"
-                                    FontSize="12" BorderThickness="1" Padding="12,6">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE70B;" FontSize="12"/>
-                                    <TextBlock x:Name="GPLButtonText"/>
-                                </StackPanel>
-                            </Button>
-                            <Button x:Name="RevokeEulaButton" Content="撤销同意用户协议"
-                                    Click="RevokeEulaButton_Click" FontSize="12"
-                                    Foreground="{ThemeResource DangerRedBrush}"
-                                    Background="Transparent"
-                                    BorderBrush="{ThemeResource DangerRedBrush}"
-                                    BorderThickness="1" Padding="12,6"/>
-                        </StackPanel>
-
-                        <Border Height="1" Background="{ThemeResource DividerBrush}" Margin="0,16,0,12"/>
-
-                        <TextBlock x:Name="ContributorsHeader" FontSize="16" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>
-
-                        <StackPanel Spacing="20">
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Ellipse Width="64" Height="64" Grid.Column="0">
-                                    <Ellipse.Fill>
-                                        <ImageBrush ImageSource="/Assets/dwg.png" Stretch="UniformToFill"/>
-                                    </Ellipse.Fill>
-                                    <Ellipse.Stroke>
-                                        <ThemeResource ResourceKey="AvatarStrokeBrush"/>
-                                    </Ellipse.Stroke>
-                                    <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
-                                </Ellipse>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                                    <TextBlock Text="KL_Xydwg01" FontSize="15" FontWeight="SemiBold"
-                                               Foreground="{ThemeResource PrimaryTextBrush}"/>
-                                    <TextBlock x:Name="ContributorRole_Dwg"
-                                               FontSize="12" Foreground="{ThemeResource TertiaryTextBrush}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Ellipse Width="64" Height="64" Grid.Column="0">
-                                    <Ellipse.Fill>
-                                        <ImageBrush ImageSource="/Assets/xcy.png" Stretch="UniformToFill"/>
-                                    </Ellipse.Fill>
-                                    <Ellipse.Stroke>
-                                        <ThemeResource ResourceKey="AvatarStrokeBrush"/>
-                                    </Ellipse.Stroke>
-                                    <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
-                                </Ellipse>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                                    <TextBlock Text="Shayne Hui" FontSize="15" FontWeight="SemiBold"
-                                               Foreground="{ThemeResource PrimaryTextBrush}"/>
-                                    <TextBlock x:Name="ContributorRole_Xcy"
-                                               FontSize="12" Foreground="{ThemeResource TertiaryTextBrush}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <Grid ColumnSpacing="16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Ellipse Width="64" Height="64" Grid.Column="0">
-                                    <Ellipse.Fill>
-                                        <ImageBrush ImageSource="/Assets/kpdw.png" Stretch="UniformToFill"/>
-                                    </Ellipse.Fill>
-                                    <Ellipse.Stroke>
-                                        <ThemeResource ResourceKey="AvatarStrokeBrush"/>
-                                    </Ellipse.Stroke>
-                                    <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
-                                </Ellipse>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                                    <TextBlock Text="月" FontSize="15" FontWeight="SemiBold"
-                                               Foreground="{ThemeResource PrimaryTextBrush}"/>
-                                    <TextBlock x:Name="ContributorRole_Yue"
-                                               FontSize="12" Foreground="{ThemeResource TertiaryTextBrush}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-
-                        <Border Height="1" Background="{ThemeResource DividerBrush}" Margin="0,16,0,12"/>
-
-                        <TextBlock x:Name="ContributionsHeader" FontSize="16" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>
-                        <TextBlock x:Name="ContributionsIntro"
-                                   FontSize="12" Foreground="{ThemeResource FaintTextBrush}"
-                                   Margin="0,0,0,12" TextWrapping="Wrap"/>
-                        <StackPanel x:Name="ContributionsStack" Spacing="8"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Row="6" Style="{ThemeResource CardBorderStyle}">
-                    <StackPanel>
-                        <TextBlock x:Name="ChangelogHeader" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,12"/>
-                        <StackPanel Spacing="8">
+                    <Border Style="{ThemeResource CardBorderStyle}">
+                        <StackPanel>
                             <TextBlock x:Name="LogTextBlock" FontSize="12"
-                                       Foreground="{ThemeResource SecondaryTextBrush}"/>
+                                       Foreground="{ThemeResource SecondaryTextBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ======== 二级：贡献者与致谢 ======== -->
+            <ScrollViewer x:Name="CreditsView" Visibility="Collapsed">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,20">
+                        <Button Click="BackToRoot" Padding="8,4">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE76B;" FontSize="14"/>
+                                <TextBlock Text="{Binding ElementName=BackText, Path=Text}"/>
+                            </StackPanel>
+                        </Button>
+                        <TextBlock x:Name="CreditsPageTitle" FontSize="20" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource PrimaryTextBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
-                </Border>
-            </Grid>
+
+                    <!-- 贡献者 -->
+                    <Border Style="{ThemeResource CardBorderStyle}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock x:Name="ContributorsHeader" FontSize="16" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,16"/>
+                            <StackPanel Spacing="20">
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Width="56" Height="56" Grid.Column="0">
+                                        <Ellipse.Fill>
+                                            <ImageBrush ImageSource="/Assets/dwg.png" Stretch="UniformToFill"/>
+                                        </Ellipse.Fill>
+                                        <Ellipse.Stroke><ThemeResource ResourceKey="AvatarStrokeBrush"/></Ellipse.Stroke>
+                                        <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
+                                    </Ellipse>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                        <TextBlock Text="KL_Xydwg01" FontSize="15" FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                        <TextBlock x:Name="ContributorRole_Dwg"
+                                                   FontSize="12" Foreground="{ThemeResource TertiaryTextBrush}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Width="56" Height="56" Grid.Column="0">
+                                        <Ellipse.Fill>
+                                            <ImageBrush ImageSource="/Assets/xcy.png" Stretch="UniformToFill"/>
+                                        </Ellipse.Fill>
+                                        <Ellipse.Stroke><ThemeResource ResourceKey="AvatarStrokeBrush"/></Ellipse.Stroke>
+                                        <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
+                                    </Ellipse>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                        <TextBlock Text="Shayne Hui" FontSize="15" FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                        <TextBlock x:Name="ContributorRole_Xcy"
+                                                   FontSize="12" Foreground="{ThemeResource TertiaryTextBrush}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Width="56" Height="56" Grid.Column="0">
+                                        <Ellipse.Fill>
+                                            <ImageBrush ImageSource="/Assets/kpdw.png" Stretch="UniformToFill"/>
+                                        </Ellipse.Fill>
+                                        <Ellipse.Stroke><ThemeResource ResourceKey="AvatarStrokeBrush"/></Ellipse.Stroke>
+                                        <Ellipse.StrokeThickness>1</Ellipse.StrokeThickness>
+                                    </Ellipse>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                        <TextBlock Text="月" FontSize="15" FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                        <TextBlock x:Name="ContributorRole_Yue"
+                                                   FontSize="12" Foreground="{ThemeResource TertiaryTextBrush}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 贡献项目 -->
+                    <Border Style="{ThemeResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock x:Name="ContributionsHeader" FontSize="16" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource PrimaryTextBrush}" Margin="0,0,0,8"/>
+                            <TextBlock x:Name="ContributionsIntro"
+                                       FontSize="12" Foreground="{ThemeResource FaintTextBrush}"
+                                       Margin="0,0,0,12" TextWrapping="Wrap"/>
+                            <StackPanel x:Name="ContributionsStack" Spacing="6"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
-    </ScrollViewer>
+    </Grid>
 </Page>

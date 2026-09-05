@@ -36,6 +36,7 @@ namespace VTStudioToolBox
             FirewallHelper.EnsureFirewallRule();
 
             m_window = new MainWindow();
+            m_window.Closed += OnWindowClosed;
             WindowHelper.SetWindow(m_window);
 
             if (m_window.Content is FrameworkElement rootElement)
@@ -49,6 +50,17 @@ namespace VTStudioToolBox
 
             // Fire-and-forget: track app launch in background
             _ = TrackAppLaunchAsync();
+        }
+
+        private void OnWindowClosed(object sender, WindowEventArgs args)
+        {
+            Logger.Info("App", "Window closed - cleaning up resources");
+            try
+            {
+                AsusFanReader.Dispose();
+                AdbCache.Stop();
+            }
+            catch (Exception ex) { Logger.Warn("App", $"Cleanup failed: {ex.Message}"); }
         }
 
         private static ServiceProvider ConfigureServices()

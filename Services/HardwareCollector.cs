@@ -34,7 +34,7 @@ public sealed class HardwareCollector : IHardwareCollector
             if (File.Exists(DeviceIdPath))
             {
                 string json = File.ReadAllText(DeviceIdPath);
-                var doc = JsonDocument.Parse(json);
+                using var doc = JsonDocument.Parse(json);
                 if (doc.RootElement.TryGetProperty("deviceGuid", out var prop))
                 {
                     string existing = prop.GetString() ?? "";
@@ -42,7 +42,7 @@ public sealed class HardwareCollector : IHardwareCollector
                 }
             }
         }
-        catch { }
+        catch (Exception ex) { Logger.Warn("HardwareCollector", $"Failed to read DeviceGuid: {ex.Message}"); }
 
         string newGuid = Guid.NewGuid().ToString();
         try

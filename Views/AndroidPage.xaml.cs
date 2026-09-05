@@ -71,6 +71,7 @@ namespace VTStudioToolBox.Views
         private void AndroidPage_Unloaded(object sender, RoutedEventArgs e)
         {
             _uiTimer.Stop();
+            ThemeHelper.ThemeChanged -= OnThemeChanged;
         }
 
         private string _lastAppliedHash = "";

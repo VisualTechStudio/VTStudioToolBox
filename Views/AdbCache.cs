@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VTStudioToolBox.Helpers;
 
 namespace VTStudioToolBox.Views
 {
@@ -25,6 +26,7 @@ namespace VTStudioToolBox.Views
         public static event Action? Updated;
 
         private static string _lastHash = "";
+        private static bool _isPolling;
 
         static AdbCache()
         {
@@ -70,7 +72,20 @@ namespace VTStudioToolBox.Views
 
         private static async Task Poll()
         {
-            if (!File.Exists(AdbPath)) return;
+            if (_isPolling || !File.Exists(AdbPath)) return;
+            _isPolling = true;
+            try
+            {
+                await PollInternal();
+            }
+            finally
+            {
+                _isPolling = false;
+            }
+        }
+
+        private static async Task PollInternal()
+        {
 
             int pid = FindPid();
             if (pid > 0)
@@ -182,10 +197,19 @@ namespace VTStudioToolBox.Views
         {
             try
             {
-                foreach (var proc in Process.GetProcessesByName("adb"))
-                    return proc.Id;
+                var processes = Process.GetProcessesByName("adb");
+                try
+                {
+                    foreach (var proc in processes)
+                        return proc.Id;
+                }
+                finally
+                {
+                    foreach (var proc in processes)
+                        proc.Dispose();
+                }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("AdbCache", $"FindPid failed: {ex.Message}"); }
             return -1;
         }
 
@@ -207,7 +231,7 @@ namespace VTStudioToolBox.Views
                 await p.WaitForExitAsync();
                 return (p.ExitCode, string.IsNullOrEmpty(stderr) ? stdout : $"{stdout}\n{stderr}");
             }
-            catch { return (-1, ""); }
+            catch (Exception ex) { Logger.Warn("AdbCache", $"Run failed: {ex.Message}"); return (-1, ""); }
         }
     }
 

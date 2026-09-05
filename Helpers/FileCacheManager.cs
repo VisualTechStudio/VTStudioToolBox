@@ -40,7 +40,7 @@ namespace VTStudioToolBox.Helpers
                 string json = JsonSerializer.Serialize(cacheItem, JsonOptions);
                 File.WriteAllText(filePath, json);
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("FileCacheManager", $"Set failed: {ex.Message}"); }
         }
 
         public static T? Get<T>(string key) where T : class
@@ -65,10 +65,7 @@ namespace VTStudioToolBox.Helpers
 
                 return cacheItem.Data;
             }
-            catch
-            {
-                return null;
-            }
+            catch (Exception ex) { Logger.Warn("FileCacheManager", $"Get failed: {ex.Message}"); return null; }
         }
 
         public static bool Exists(string key)
@@ -83,10 +80,7 @@ namespace VTStudioToolBox.Helpers
                 var cacheItem = JsonSerializer.Deserialize<CacheItem<JsonElement>>(json, JsonOptions);
                 return cacheItem != null && DateTime.Now <= cacheItem.ExpirationTime;
             }
-            catch
-            {
-                return false;
-            }
+            catch (Exception ex) { Logger.Warn("FileCacheManager", $"Exists failed: {ex.Message}"); return false; }
         }
 
         public static void Clear()
@@ -101,7 +95,7 @@ namespace VTStudioToolBox.Helpers
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("FileCacheManager", $"Clear failed: {ex.Message}"); }
         }
 
         private static string GetCacheFilePath(string key)

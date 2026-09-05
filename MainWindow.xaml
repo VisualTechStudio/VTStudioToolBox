@@ -7,6 +7,197 @@
 
     <Grid x:Name="RootGrid" Background="Transparent">
 
+        <!-- Setup Wizard Overlay -->
+        <Grid x:Name="SetupWizardOverlay"
+              Background="{ThemeResource EulaOverlayBrush}"
+              Visibility="Collapsed"
+              Canvas.ZIndex="200"
+              Opacity="0">
+
+            <Border VerticalAlignment="Center" HorizontalAlignment="Center"
+                    MaxWidth="600" Width="600"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="16">
+
+                <Grid Padding="48,36,48,32">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- App info (top-left) + step dots (right) -->
+                    <Grid Grid.Row="0" Margin="0,0,0,20">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Image Source="/Assets/logo.png" Width="36" Height="36"
+                                   VerticalAlignment="Center"/>
+                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                <TextBlock Text="VTStudio ToolBox" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                <TextBlock x:Name="WizardVersionText" FontSize="11"
+                                           Foreground="{ThemeResource SecondaryTextBrush}"/>
+                                <TextBlock x:Name="WizardCopyrightText" FontSize="10"
+                                           Foreground="{ThemeResource TertiaryTextBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel x:Name="WizardStepDots" Orientation="Horizontal"
+                                    Spacing="8" HorizontalAlignment="Right"
+                                    VerticalAlignment="Center">
+                            <Border x:Name="Dot1" Width="8" Height="8" CornerRadius="4"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"/>
+                            <Border x:Name="Dot2" Width="8" Height="8" CornerRadius="4"
+                                    Background="{ThemeResource ControlStrokeColorDefaultBrush}"/>
+                            <Border x:Name="Dot3" Width="8" Height="8" CornerRadius="4"
+                                    Background="{ThemeResource ControlStrokeColorDefaultBrush}"/>
+                            <Border x:Name="Dot4" Width="8" Height="8" CornerRadius="4"
+                                    Background="{ThemeResource ControlStrokeColorDefaultBrush}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Title -->
+                    <TextBlock x:Name="WizardTitle" Grid.Row="1"
+                               FontSize="20" FontWeight="SemiBold"
+                               Foreground="{ThemeResource PrimaryTextBrush}"
+                               HorizontalAlignment="Left" TextWrapping="Wrap"
+                               Margin="0,0,0,4"/>
+
+                    <!-- Subtitle -->
+                    <TextBlock x:Name="WizardSubtitle" Grid.Row="2"
+                               FontSize="13" Foreground="{ThemeResource SecondaryTextBrush}"
+                               HorizontalAlignment="Left"
+                               TextWrapping="Wrap" Margin="0,0,0,28"/>
+
+                    <!-- Content area -->
+                    <Grid Grid.Row="3" x:Name="WizardContentArea">
+
+                        <!-- Step 1: Welcome -->
+                        <StackPanel x:Name="WizardStep1Content" Spacing="0"/>
+
+                        <!-- Step 2: Language -->
+                        <StackPanel x:Name="WizardStep2Content" Visibility="Collapsed" Spacing="0">
+                            <TextBlock x:Name="LanguageLabel" FontSize="12"
+                                       Foreground="{ThemeResource SecondaryTextBrush}"
+                                       Margin="0,0,0,6"/>
+                            <ComboBox x:Name="LanguageComboBox"
+                                      HorizontalAlignment="Stretch"
+                                      FontSize="14" MinHeight="40"/>
+                        </StackPanel>
+
+                        <!-- Step 3: Theme -->
+                        <Grid x:Name="WizardStep3Content" Visibility="Collapsed" ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border x:Name="ThemeCardSystem" Grid.Column="0"
+                                    CornerRadius="8" Padding="12,18,12,14"
+                                    BorderThickness="2"
+                                    Tapped="ThemeCard_Tapped" Tag="System"
+                                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                    <FontIcon Glyph="&#xE770;" FontSize="26" HorizontalAlignment="Center"
+                                              Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                    <TextBlock x:Name="ThemeSystemLabel" FontSize="12"
+                                               HorizontalAlignment="Center" TextAlignment="Center"
+                                               Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border x:Name="ThemeCardLight" Grid.Column="1"
+                                    CornerRadius="8" Padding="12,18,12,14"
+                                    BorderThickness="2"
+                                    Tapped="ThemeCard_Tapped" Tag="Light"
+                                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                    <FontIcon Glyph="&#xE706;" FontSize="26" HorizontalAlignment="Center"
+                                              Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                    <TextBlock x:Name="ThemeLightLabel" FontSize="12"
+                                               HorizontalAlignment="Center" TextAlignment="Center"
+                                               Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border x:Name="ThemeCardDark" Grid.Column="2"
+                                    CornerRadius="8" Padding="12,18,12,14"
+                                    BorderThickness="2"
+                                    Tapped="ThemeCard_Tapped" Tag="Dark"
+                                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                <StackPanel HorizontalAlignment="Center" Spacing="8">
+                                    <FontIcon Glyph="&#xE793;" FontSize="26" HorizontalAlignment="Center"
+                                              Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                    <TextBlock x:Name="ThemeDarkLabel" FontSize="12"
+                                               HorizontalAlignment="Center" TextAlignment="Center"
+                                               Foreground="{ThemeResource PrimaryTextBrush}"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Step 4: PawnIO -->
+                        <Grid x:Name="WizardStep4Content" Visibility="Collapsed"
+                              ColumnSpacing="20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Width="64" Height="64" CornerRadius="16"
+                                    Grid.Column="0"
+                                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                    VerticalAlignment="Top">
+                                <FontIcon x:Name="PawnIOStepIcon" Glyph="&#xE72E;" FontSize="32"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Spacing="14"
+                                        VerticalAlignment="Center">
+                                <TextBlock x:Name="PawnIODescription"
+                                           FontSize="13" Foreground="{ThemeResource SecondaryTextBrush}"
+                                           TextWrapping="Wrap" LineHeight="20"/>
+                                <Button x:Name="BtnInstallPawnIO"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Center"
+                                        FontSize="14" Height="38"
+                                        Style="{ThemeResource AccentButtonStyle}"/>
+                                <TextBlock x:Name="BtnSkipPawnIO"
+                                           FontSize="12.5"
+                                           Foreground="{ThemeResource SecondaryTextBrush}"
+                                           HorizontalAlignment="Left"
+                                           Tapped="BtnSkipPawnIO_Tapped"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <!-- Navigation buttons -->
+                    <Grid Grid.Row="4" ColumnSpacing="10" Margin="0,28,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="BtnWizardBack" Grid.Column="0"
+                                MinWidth="120" HorizontalContentAlignment="Center"
+                                Height="38" FontSize="14"
+                                Click="BtnWizardBack_Click"/>
+                        <Button x:Name="BtnWizardNext" Grid.Column="1"
+                                HorizontalAlignment="Right" MinWidth="120"
+                                HorizontalContentAlignment="Center"
+                                Height="38" FontSize="14"
+                                Click="BtnWizardNext_Click"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
         <Grid x:Name="EulaOverlay"
               Background="{ThemeResource EulaOverlayBrush}"
               Visibility="Collapsed"

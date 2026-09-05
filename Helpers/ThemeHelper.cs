@@ -34,7 +34,7 @@ public static class ThemeHelper
                 saved = data?.Theme ?? "";
             }
         }
-        catch { }
+        catch (Exception ex) { Logger.Warn("ThemeHelper", $"Initialize failed: {ex.Message}"); }
 
         if (string.Equals(saved, "System", StringComparison.OrdinalIgnoreCase))
         {
@@ -62,7 +62,7 @@ public static class ThemeHelper
             var bg = uiSettings.GetColorValue(UIColorType.Background);
             return bg.R == 0 && bg.G == 0 && bg.B == 0 ? ElementTheme.Dark : ElementTheme.Light;
         }
-        catch { return ElementTheme.Dark; }
+        catch (Exception ex) { Logger.Warn("ThemeHelper", $"GetSystemTheme failed: {ex.Message}"); return ElementTheme.Dark; }
     }
 
     private static void StartSystemThemeListener()
@@ -94,7 +94,7 @@ public static class ThemeHelper
                 }
             };
         }
-        catch { }
+        catch (Exception ex) { Logger.Warn("ThemeHelper", $"StartSystemThemeListener failed: {ex.Message}"); }
     }
 
     private static void StopSystemThemeListener()
@@ -115,7 +115,7 @@ public static class ThemeHelper
                     _lightThemeDict = (ResourceDictionary)dicts["Light"];
             }
         }
-        catch { }
+        catch (Exception ex) { Logger.Warn("ThemeHelper", $"RefreshThemeDict failed: {ex.Message}"); }
     }
 
     private static ResourceDictionary GetCurrentThemeDict()
@@ -173,7 +173,7 @@ public static class ThemeHelper
                     return brush.Color;
             }
         }
-        catch { }
+        catch (Exception ex) { Logger.Warn("ThemeHelper", $"GetColor theme dict failed: {ex.Message}"); }
 
         // Fallback: try Application.Current.Resources
         try
@@ -184,7 +184,7 @@ public static class ThemeHelper
                     return brush.Color;
             }
         }
-        catch { }
+        catch (Exception ex) { Logger.Warn("ThemeHelper", $"GetColor app resources failed: {ex.Message}"); }
 
         return Windows.UI.Color.FromArgb(255, 255, 255, 255);
     }
@@ -208,7 +208,7 @@ public static class ThemeHelper
             string json = JsonSerializer.Serialize(data);
             File.WriteAllText(SettingsPath, json);
         }
-        catch { }
+        catch (Exception ex) { Logger.Warn("ThemeHelper", $"Save failed: {ex.Message}"); }
     }
 
     private class ThemeData

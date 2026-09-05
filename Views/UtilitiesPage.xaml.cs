@@ -50,6 +50,7 @@ namespace VTStudioToolBox.Views
             this.InitializeComponent();
             UpdateLanguage();
             this.Loaded += UtilitiesPage_Loaded;
+            this.Unloaded += (_, _) => ThemeHelper.ThemeChanged -= OnThemeChanged;
             ThemeHelper.ThemeChanged += OnThemeChanged;
         }
 
@@ -178,7 +179,7 @@ namespace VTStudioToolBox.Views
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { Logger.Warn("Utilities", $"LoadIconFromPath failed: {ex.Message}"); }
         }
 
         private async void LaunchTool(string toolPath, string toolName)

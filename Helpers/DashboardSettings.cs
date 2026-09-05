@@ -28,7 +28,7 @@ public static class DashboardSettings
                     SuppressHighRefreshWarning = true;
             }
         }
-        catch { }
+        catch (Exception ex) { Logger.Warn("DashboardSettings", $"Initialize failed: {ex.Message}"); }
     }
 
     public static void SetRefreshInterval(int ms)
@@ -53,7 +53,7 @@ public static class DashboardSettings
             string json = JsonSerializer.Serialize(new DashboardData { RefreshIntervalMs = RefreshIntervalMs });
             File.WriteAllText(SettingsPath, json);
         }
-        catch { }
+        catch (Exception ex) { Logger.Warn("DashboardSettings", $"Save failed: {ex.Message}"); }
     }
 
     private class DashboardData
