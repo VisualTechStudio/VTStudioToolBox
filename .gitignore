@@ -1,8 +1,15 @@
+#IDE
 .vs/
+
+#CACHE
 bin/
 obj/
 *.user
 *.suo
-.mimocode\
 
+#Test
+build.ps1
+
+#Vibe Code
+CLAUDE.md
 secrets.json
