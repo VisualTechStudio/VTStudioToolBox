@@ -77,7 +77,8 @@ namespace VTStudioToolBox.Services
             for (int i = 0; i < readings.Length; i++)
             {
                 var r = readings[i];
-                var sensorName = i < sensors.Length ? sensors[i].Label : "";
+                if (r.SensorIndex >= sensors.Length) continue;
+                var sensorName = sensors[r.SensorIndex].Label;
                 var label = r.Label;
 
                 if (sensorName.Contains("CPU", StringComparison.OrdinalIgnoreCase) ||
@@ -88,7 +89,7 @@ namespace VTStudioToolBox.Services
                         data.Frequency = $"{val:F0} MHz";
                     else if (string.Equals(r.Unit, "°C", StringComparison.OrdinalIgnoreCase) && val > 0 && data.Temperature == "--")
                         data.Temperature = $"{val:F0}°C";
-                    else if (string.Equals(r.Unit, "V", StringComparison.OrdinalIgnoreCase) && val > 0 && val < 3 && data.Voltage == "--")
+                    else if (string.Equals(r.Unit, "V", StringComparison.OrdinalIgnoreCase) && val > 0 && val < 2 && data.Voltage == "--")
                         data.Voltage = $"{val:F3} V";
                     else if (string.Equals(r.Unit, "%", StringComparison.OrdinalIgnoreCase) && label.Contains("Total", StringComparison.OrdinalIgnoreCase))
                         data.Usage = $"{val:F0}%";

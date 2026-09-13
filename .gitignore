@@ -9,7 +9,5 @@ obj/
 
 #Test
 build.ps1
-
-#Vibe Code
-CLAUDE.md
 secrets.json
+/.mimocode

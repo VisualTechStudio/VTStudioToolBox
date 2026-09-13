@@ -142,7 +142,22 @@ namespace VTStudioToolBox.Services
                 data.Voltage = $"{vidValues.Average():F3} V";
             }
 
-            // Fallback: HWiNFO shared memory
+            // PawnIO driver for more accurate voltage reading (preferred over other sources)
+            var pawnioAvailable = PawnIOReader.IsAvailable();
+            if (pawnioAvailable)
+            {
+                Logger.Dev("HardwareMonitor", "PawnIO available, attempting to read voltage");
+                var pawnioVoltage = PawnIOReader.ReadCpuVoltage();
+                Logger.Dev("HardwareMonitor", $"PawnIO voltage result: {pawnioVoltage}");
+                if (pawnioVoltage > 0)
+                {
+                    // Use PawnIO result as it's more accurate
+                    data.Voltage = $"{pawnioVoltage:F3} V";
+                    Logger.Dev("HardwareMonitor", $"Using PawnIO voltage: {data.Voltage}");
+                }
+            }
+
+            // Fallback: HWiNFO shared memory (only if PawnIO didn't provide voltage)
             if (data.Frequency == "--" || data.Temperature == "--" || data.Voltage == "--" || data.Usage == "--")
             {
                 var hw = HwInfoReader.GetCpuData();
